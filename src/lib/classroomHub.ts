@@ -4,7 +4,7 @@
 // disconnected, so a hub outage never breaks the class (Jitsi carries the call).
 import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 
-import { API_BASE_URL } from "@/api/client";
+import { API_BASE_URL, CLIENT_HEADERS } from "@/api/client";
 
 export interface HubParticipant {
   connectionId: string;
@@ -89,6 +89,7 @@ export class ClassroomHubClient {
     const connection = new HubConnectionBuilder()
       .withUrl(`${API_BASE_URL}/hubs/classroom`, {
         accessTokenFactory: () => this.accessToken,
+        headers: { ...CLIENT_HEADERS },
         transport: transport(),
       })
       // Never give up: a child won't press Retry, and Jitsi carries the call meanwhile.

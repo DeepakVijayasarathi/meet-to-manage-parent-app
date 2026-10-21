@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { useState, type ComponentProps } from "react";
 import { useColorScheme } from "react-native";
 
+import { AppConfigProvider } from "@/state/appConfig";
 import { SessionProvider, useSession } from "@/state/session";
 
 SplashScreen.preventAutoHideAsync();
@@ -21,9 +22,11 @@ export default function RootLayout() {
     <ThemeProvider value={(colorScheme === "dark" ? DarkTheme : DefaultTheme) as ComponentProps<typeof ThemeProvider>["value"]}>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
-          <SplashController fontsReady={fontsReady} />
-          {fontsReady && <RootNavigator />}
-          <StatusBar style="auto" />
+          <AppConfigProvider>
+            <SplashController fontsReady={fontsReady} />
+            {fontsReady && <RootNavigator />}
+            <StatusBar style="auto" />
+          </AppConfigProvider>
         </SessionProvider>
       </QueryClientProvider>
     </ThemeProvider>

@@ -253,3 +253,19 @@ export interface ApiEnrollmentForm {
   submittedAtUtc: string | null;
   reviewedAtUtc: string | null;
 }
+
+/** GET /api/app/config: what the administrator configured for this academy's app. */
+export interface ApiAppConfig {
+  tenantCode: string | null;
+  appAccessGranted: boolean;
+  /** Where the app opens payments, adding a child and other website pages. Null when none is configured. */
+  webBaseUrl: string | null;
+  organisationName: string | null;
+  supportEmail: string | null;
+  supportPhone: string | null;
+  announcement: string | null;
+  brand: {
+    name: string | null; logoUrl: string | null; primaryColor: string | null; accentColor: string | null;
+    fontFamily: string | null; headingFont: string | null;
+  };
+}

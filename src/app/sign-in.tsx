@@ -15,7 +15,7 @@ import { useSession } from "@/state/session";
 export default function SignIn() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { signIn } = useSession();
+  const { signIn, notice, clearNotice } = useSession();
   const [identifier, setIdentifier] = useState("");
   const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
@@ -28,6 +28,7 @@ export default function SignIn() {
     if (!canSubmit || busy) return;
     setBusy(true);
     setError(null);
+    clearNotice();
     try {
       await signIn(identifier, pin);
       router.replace("/");
@@ -136,6 +137,13 @@ export default function SignIn() {
                 </Pressable>
               </View>
             </View>
+
+            {notice && !error && (
+              <View style={[styles.error, { backgroundColor: colors.mutedBg }]} accessibilityRole="alert" accessibilityLiveRegion="polite">
+                <Feather name="info" size={16} color={colors.muted} style={{ marginTop: 2 }} />
+                <Text style={[styles.errorText, { color: colors.text }]}>{notice}</Text>
+              </View>
+            )}
 
             {error && (
               <View style={[styles.error, { backgroundColor: colors.dangerSoft }]} accessibilityRole="alert" accessibilityLiveRegion="assertive">

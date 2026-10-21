@@ -5,7 +5,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, G, Mask, Rect } from "react-native-svg";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 
-import { API_BASE_URL, WEB_BASE_URL, apiFetch } from "@/api/client";
+import { API_BASE_URL, apiFetch } from "@/api/client";
 import { toPixels, type Stroke } from "@/lib/board";
 import type { Classroom } from "@/lib/useClassroom";
 import { fonts, space, type, useColors } from "@/lib/theme";
@@ -87,7 +87,7 @@ export function SlidesView({ room }: { room: Classroom }) {
         <WebView
           key={room.deckVersion}
           ref={web}
-          source={{ html, baseUrl: WEB_BASE_URL }}
+          source={{ html, baseUrl: API_BASE_URL }}
           originWhitelist={["*"]}
           onMessage={onMessage}
           javaScriptEnabled

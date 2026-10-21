@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 import type {
-  ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
+  ApiAppConfig, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
   ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, SupportTicketCategory,
 } from "./types";
 
@@ -119,4 +119,8 @@ export function submitEnrollment(token: string, answers: Record<string, unknown>
     method: "POST",
     body: JSON.stringify({ formDataJson: JSON.stringify(answers), childId }),
   });
+}
+
+export function getAppConfig(token: string): Promise<ApiAppConfig> {
+  return apiFetch<ApiAppConfig>("/api/app/config", { token });
 }

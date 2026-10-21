@@ -18,7 +18,10 @@ interface SessionContextValue {
   session: Session | null;
   isLoading: boolean;
   signIn: (identifier: string, pin: string) => Promise<void>;
-  signOut: () => void;
+  signOut: (notice?: string) => void;
+  /** Why the family was signed out (e.g. app access withdrawn); shown once on the sign-in screen. */
+  notice: string | null;
+  clearNotice: () => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -43,6 +46,7 @@ function isUsable(session: Session | null): session is Session {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     readItem(SESSION_KEY)
@@ -55,7 +59,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const signOut = useCallback(() => {
+  const signOut = useCallback((reason?: string) => {
+    setNotice(typeof reason === "string" ? reason : null);
     setSession(null);
     void writeItem(SESSION_KEY, null);
   }, []);
@@ -78,9 +83,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
       tenantCode: response.tenantCode ?? null,
     };
     await writeItem(SESSION_KEY, JSON.stringify(next));
+    setNotice(null);
     setSession(next);
   }, []);
 
-  const value = useMemo(() => ({ session, isLoading, signIn, signOut }), [session, isLoading, signIn, signOut]);
+  const clearNotice = useCallback(() => setNotice(null), []);
+  const value = useMemo(() => ({ session, isLoading, signIn, signOut, notice, clearNotice }), [session, isLoading, signIn, signOut, notice, clearNotice]);
   return <SessionContext value={value}>{children}</SessionContext>;
 }

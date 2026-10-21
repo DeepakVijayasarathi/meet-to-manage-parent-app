@@ -1,7 +1,12 @@
-// Minimal API client. The token carries the tenant, so signed-in calls use plain /api paths
-// and the single /api/auth/login finds each family's organisation from their email or mobile.
+// Minimal API client. The app is built with ONE address, the API. The token carries the tenant, so signed-in calls
+// use plain /api paths and the single /api/auth/login finds each family's organisation from their email or mobile.
+// Everything else the app needs (web portal address, name, logo, support contact, announcements) is read from
+// GET /api/app/config after sign-in, where the academy's administrator sets it (see state/appConfig.tsx).
 
 export const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? "https://api.meettomanage.cloud").replace(/\/$/, "");
+
+/** Marks requests as coming from the parent app, so the server can apply the academy's app-access setting. */
+export const CLIENT_HEADERS = { "X-Client": "parent-app" } as const;
 
 export class ApiError extends Error {
   constructor(readonly status: number, message: string) {
@@ -32,6 +37,7 @@ export async function apiFetch<T>(path: string, init: RequestInit & { token?: st
       ...rest,
       headers: {
         Accept: "application/json",
+        ...CLIENT_HEADERS,
         ...(rest.body ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
@@ -51,6 +57,3 @@ export async function apiFetch<T>(path: string, init: RequestInit & { token?: st
 export function errorMessage(err: unknown, fallback = "Something went wrong. Please try again."): string {
   return err instanceof Error && err.message ? err.message : fallback;
 }
-
-/** The web portal, for flows the app hands off (payments, PIN reset). */
-export const WEB_BASE_URL = (process.env.EXPO_PUBLIC_WEB_BASE_URL ?? "https://meettomanage.cloud").replace(/\/$/, "");

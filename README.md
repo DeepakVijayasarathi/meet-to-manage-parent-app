@@ -54,3 +54,16 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Configuration
+
+The app needs exactly one setting, the API address (see `eas.json`):
+
+```
+EXPO_PUBLIC_API_BASE_URL=https://api.example.com
+```
+
+Everything else (website address for payments, announcement, support contact, branding) is set by the academy's
+administrator in the Tenant Admin console and read from `GET /api/app/config` after sign-in. An academy must also be
+granted *application access* there, otherwise sign-in shows "The mobile app isn't enabled for your academy yet".
+Every request carries `X-Client: parent-app` so the server can apply that setting.

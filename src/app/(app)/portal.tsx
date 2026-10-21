@@ -4,12 +4,10 @@ import { useMemo, useRef, useState, type ComponentRef } from "react";
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 
-import { WEB_BASE_URL } from "@/api/client";
 import { Button } from "@/components/ui";
 import { brand, fonts, space, type, useColors } from "@/lib/theme";
+import { useAppConfig } from "@/state/appConfig";
 import { useRequiredSession } from "@/state/session";
-
-const WEB_ORIGIN = new URL(WEB_BASE_URL).origin;
 
 /**
  * Web-portal pages the app hands off to (paying an invoice, adding a child), opened already
@@ -21,6 +19,8 @@ const WEB_ORIGIN = new URL(WEB_BASE_URL).origin;
 export default function Portal() {
   const colors = useColors();
   const session = useRequiredSession();
+  const { webBaseUrl, isLoading: configLoading } = useAppConfig();
+  const webOrigin = webBaseUrl ? new URL(webBaseUrl).origin : null;
   const { path = "/parent", title = "Meet to Manage" } = useLocalSearchParams<{ path?: string; title?: string }>();
   const web = useRef<ComponentRef<typeof WebView>>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +28,7 @@ export default function Portal() {
   const [canGoBack, setCanGoBack] = useState(false);
 
   const signIn = useMemo(() => {
+    if (!webOrigin) return "true;";
     const entries: Record<string, string> = {
       "trn.remember": "true",
       "trn.accessToken": session.token,
@@ -37,16 +38,16 @@ export default function Portal() {
       "trn.permissions": "[]",
       ...(session.tenantCode ? { "trn.tenantCode": session.tenantCode } : {}),
     };
-    return `(function(){try{if(location.origin!==${JSON.stringify(WEB_ORIGIN)})return;
+    return `(function(){try{if(location.origin!==${JSON.stringify(webOrigin)})return;
 var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}catch(_){}})();true;`;
-  }, [session]);
+  }, [session, webOrigin]);
 
   const safePath = path.startsWith("/") ? path : `/${path}`;
 
   function onNavigation(nav: WebViewNavigation) {
     setCanGoBack(nav.canGoBack);
     // The portal's own sign-out or a lost session lands on /login: close back to the app instead.
-    if (nav.url.startsWith(WEB_ORIGIN) && /\/login\/?$/.test(new URL(nav.url).pathname)) router.back();
+    if (webOrigin && nav.url.startsWith(webOrigin) && /\/login\/?$/.test(new URL(nav.url).pathname)) router.back();
   }
 
   return (
@@ -66,7 +67,18 @@ var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}ca
           ),
         }}
       />
-      {failed ? (
+      {!webBaseUrl ? (
+        <View style={styles.center}>
+          {configLoading ? <ActivityIndicator color={colors.primary} /> : (
+            <>
+              <Feather name="globe" size={28} color={colors.muted} />
+              <Text style={[type.heading, { color: colors.text }]}>This page isn&apos;t available yet</Text>
+              <Text style={[type.caption, { color: colors.muted, textAlign: "center" }]}>Your academy hasn&apos;t set up its website for the app. Please contact them.</Text>
+              <Button label="Go back" icon="chevron-left" size="sm" onPress={() => router.back()} />
+            </>
+          )}
+        </View>
+      ) : failed ? (
         <View style={styles.center}>
           <Feather name="wifi-off" size={28} color={colors.muted} />
           <Text style={[type.heading, { color: colors.text }]}>Couldn&apos;t open this page</Text>
@@ -76,7 +88,7 @@ var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}ca
       ) : (
         <WebView
           ref={web}
-          source={{ uri: `${WEB_BASE_URL}${safePath}` }}
+          source={{ uri: `${webBaseUrl}${safePath}` }}
           injectedJavaScriptBeforeContentLoaded={signIn}
           sharedCookiesEnabled
           domStorageEnabled

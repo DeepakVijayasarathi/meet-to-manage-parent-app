@@ -75,7 +75,7 @@ export default function More() {
       ))}
 
       <Card padded={false}>
-        <ListRow icon="log-out" tone="danger" title="Sign out" onPress={signOut} chevron={false} />
+        <ListRow icon="log-out" tone="danger" title="Sign out" onPress={() => signOut()} chevron={false} />
       </Card>
 
       <View style={styles.footer}>

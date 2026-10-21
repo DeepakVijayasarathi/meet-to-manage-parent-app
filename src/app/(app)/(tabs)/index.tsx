@@ -15,6 +15,7 @@ import { SessionRow, dayLabel } from "@/components/sessions";
 import { belongsToChild, classTitle, countdownLabel, isJoinable, isLive, joinDisplayName, nextClass } from "@/lib/schedule";
 import { brand, fonts, radius, space, type, useColors, type Colors } from "@/lib/theme";
 import { useTabBarSpace } from "@/lib/tabBar";
+import { useAppConfig } from "@/state/appConfig";
 import { useRequiredSession, useSession } from "@/state/session";
 
 const DAYS = 14;
@@ -46,6 +47,7 @@ export default function Dashboard() {
   const tabBarSpace = useTabBarSpace();
   const { signOut } = useSession();
   const session = useRequiredSession();
+  const { announcement } = useAppConfig();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -110,7 +112,7 @@ export default function Dashboard() {
             <Text style={[type.heading, { color: colors.text }]} numberOfLines={1}>{session.userName}</Text>
             <Text style={[type.caption, { color: colors.muted, marginTop: 2 }]}>Parent account</Text>
             <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
-            <Pressable onPress={signOut} accessibilityRole="button" style={styles.menuItem}>
+            <Pressable onPress={() => signOut()} accessibilityRole="button" style={styles.menuItem}>
               <Feather name="log-out" size={16} color={colors.danger} />
               <Text style={[type.label, { color: colors.danger }]}>Sign out</Text>
             </Pressable>
@@ -122,6 +124,13 @@ export default function Dashboard() {
         contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + space.xxxl + tabBarSpace }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />}
       >
+        {announcement ? (
+          <View accessibilityRole="alert" style={[styles.announcement, { backgroundColor: colors.primarySoft }]}>
+            <Feather name="bell" size={16} color={colors.primaryInk} style={{ marginTop: 2 }} />
+            <Text style={[type.body, { color: colors.primaryInk, flex: 1 }]}>{announcement}</Text>
+          </View>
+        ) : null}
+
         <Appear style={styles.greeting}>
           <Text style={[type.overline, { color: colors.muted }]}>
             {new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
@@ -397,6 +406,7 @@ const styles = StyleSheet.create({
   menuDivider: { height: StyleSheet.hairlineWidth, marginVertical: space.md },
   menuItem: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.xs },
   body: { paddingHorizontal: space.xl, paddingTop: space.md, gap: space.xxl },
+  announcement: { flexDirection: "row", gap: space.sm, padding: space.md, borderRadius: radius.md },
   greeting: { gap: space.xs, marginTop: space.xs },
   childTabs: { gap: space.sm },
   childTab: { flexDirection: "row", alignItems: "center", gap: space.sm, borderRadius: radius.pill, borderWidth: 1, paddingLeft: 4, paddingRight: space.lg, paddingVertical: 4 },
