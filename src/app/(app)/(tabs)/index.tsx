@@ -280,6 +280,7 @@ export default function Dashboard() {
 }
 
 function UpNext({ session, colors, displayName }: { session?: ApiClassSession; colors: Colors; displayName: string }) {
+  const { config } = useAppConfig();
   if (!session) {
     return (
       <Card>
@@ -294,7 +295,7 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
   const endTime = new Date(session.scheduledEndAtUtc).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   const day = dayLabel(session);
 
-  const joinable = isJoinable(session);
+  const joinable = isJoinable(session, config?.joinOpensMinutesBefore);
   const countdown = live ? "Live now" : countdownLabel(session);
   const open = () => router.push({ pathname: "/class/[id]", params: { id: session.id } });
   const join = () => router.push({ pathname: "/live/[id]", params: { id: session.id, title: classTitle(session), name: displayName } });

@@ -264,6 +264,8 @@ export interface ApiAppConfig {
   supportEmail: string | null;
   supportPhone: string | null;
   announcement: string | null;
+  /** Minutes before a class starts that Join Class is enabled. */
+  joinOpensMinutesBefore: number;
   brand: {
     name: string | null; logoUrl: string | null; primaryColor: string | null; accentColor: string | null;
     fontFamily: string | null; headingFont: string | null;

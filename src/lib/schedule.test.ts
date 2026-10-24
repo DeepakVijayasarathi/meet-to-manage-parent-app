@@ -21,13 +21,15 @@ const session = (over: Partial<ApiClassSession> = {}): ApiClassSession => ({
   childIds: ["c1"], hasRecording: false, recordingExpiresAtUtc: null, demoChildName: null, ...over,
 });
 
-test("join stays open until 3 hours after the start, matching the web portal", () => {
-  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(30) }), now), true);
-  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(-179) }), now), true);
-  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(-181) }), now), false);
-  assert.equal(isJoinable(session({ status: "Cancelled" }), now), false);
-  assert.equal(isJoinable(session({ status: "Rescheduled" }), now), false);
-  assert.equal(isJoinable(session({ status: "InProgress", scheduledStartAtUtc: at(-10) }), now), true);
+test("join opens the configured minutes before the start and closes 3 hours after it", () => {
+  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(5) }), 10, now), true);
+  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(30) }), 10, now), false);
+  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(30) }), 45, now), true);
+  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(-179) }), 10, now), true);
+  assert.equal(isJoinable(session({ scheduledStartAtUtc: at(-181) }), 10, now), false);
+  assert.equal(isJoinable(session({ status: "Cancelled" }), 10, now), false);
+  assert.equal(isJoinable(session({ status: "Rescheduled" }), 10, now), false);
+  assert.equal(isJoinable(session({ status: "InProgress", scheduledStartAtUtc: at(-10) }), 10, now), true);
 });
 
 test("live means between start and end, or marked in progress", () => {

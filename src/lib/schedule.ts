@@ -7,10 +7,14 @@ export const JOIN_GRACE_MINUTES = 3 * 60;
 
 const JOINABLE: ApiClassSession["status"][] = ["Scheduled", "InProgress", "CarriedForward"];
 
-export function isJoinable(s: ApiClassSession, now: Date = new Date()): boolean {
+export const DEFAULT_JOIN_OPENS_MINUTES = 10;
+
+/** Join opens `opensMinutesBefore` before the start (the academy's app config) and closes JOIN_GRACE_MINUTES after it. */
+export function isJoinable(s: ApiClassSession, opensMinutesBefore: number = DEFAULT_JOIN_OPENS_MINUTES, now: Date = new Date()): boolean {
   if (!JOINABLE.includes(s.status)) return false;
   const start = new Date(s.scheduledStartAtUtc).getTime();
-  return now.getTime() < start + JOIN_GRACE_MINUTES * 60_000;
+  const t = now.getTime();
+  return t >= start - opensMinutesBefore * 60_000 && t < start + JOIN_GRACE_MINUTES * 60_000;
 }
 
 /** The class is happening right now (between scheduled start and end, or marked in progress). */
