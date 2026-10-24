@@ -71,10 +71,15 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {},
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
       "eas": {
-        "projectId": "6be24fbb-4b4c-476d-b549-7b5c42953c40"
+        "projectId": "d9073293-965b-46f7-b601-7598fd2bb67b"
       }
-    }
+    },
+    "owner": "karthi0106"
   }
 }
