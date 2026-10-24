@@ -60,7 +60,7 @@ export default function ClassDetails() {
     <Screen refreshing={schedule.isRefetching} onRefresh={() => schedule.refetch()}>
       <Stack.Screen options={{ title: classTitle(cls) }} />
 
-      <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+      <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={[styles.pill, { backgroundColor: live ? "#16A34A" : "#FFFFFF" }]}>
             <Text style={[styles.pillText, { color: live ? "#FFFFFF" : brand.orangeTo }]}>

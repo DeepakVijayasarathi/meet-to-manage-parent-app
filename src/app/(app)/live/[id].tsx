@@ -142,7 +142,7 @@ function Message({ icon, title, body, action }: { icon: "mic-off" | "alert-circl
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.body}>{body}</Text>
       <View style={{ alignSelf: "stretch", marginTop: space.md }}>{action}</View>
-      <Pressable onPress={() => router.back()} accessibilityRole="button" style={{ padding: space.md }}>
+      <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to the app" style={{ padding: space.md }}>
         <Text style={[styles.body, { color: brand.orangeTo, fontFamily: fonts.semibold }]}>Back to the app</Text>
       </Pressable>
     </View>

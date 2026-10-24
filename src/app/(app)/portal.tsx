@@ -19,8 +19,13 @@ import { useRequiredSession } from "@/state/session";
 export default function Portal() {
   const colors = useColors();
   const session = useRequiredSession();
-  const { webBaseUrl, isLoading: configLoading } = useAppConfig();
-  const webOrigin = webBaseUrl ? new URL(webBaseUrl).origin : null;
+  const { webBaseUrl, isLoading: configLoading, error: configError, retry: retryConfig } = useAppConfig();
+  const webOrigin = useMemo(() => {
+    try {
+      const url = webBaseUrl ? new URL(webBaseUrl) : null;
+      return url?.protocol === "https:" ? url.origin : null;
+    } catch { return null; }
+  }, [webBaseUrl]);
   const { path = "/parent", title = "Meet to Manage" } = useLocalSearchParams<{ path?: string; title?: string }>();
   const web = useRef<ComponentRef<typeof WebView>>(null);
   const [loading, setLoading] = useState(true);
@@ -67,14 +72,14 @@ var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}ca
           ),
         }}
       />
-      {!webBaseUrl ? (
+      {!webOrigin ? (
         <View style={styles.center}>
           {configLoading ? <ActivityIndicator color={colors.primary} /> : (
             <>
               <Feather name="globe" size={28} color={colors.muted} />
-              <Text style={[type.heading, { color: colors.text }]}>This page isn&apos;t available yet</Text>
-              <Text style={[type.caption, { color: colors.muted, textAlign: "center" }]}>Your academy hasn&apos;t set up its website for the app. Please contact them.</Text>
-              <Button label="Go back" icon="chevron-left" size="sm" onPress={() => router.back()} />
+              <Text style={[type.heading, { color: colors.text }]}>{configError ? "Couldn’t load this page" : "This page isn’t available yet"}</Text>
+              <Text style={[type.caption, { color: colors.muted, textAlign: "center" }]}>{configError ?? "Your academy hasn’t set up a secure website for the app. Please contact them."}</Text>
+              {configError ? <Button label="Try again" icon="refresh-cw" size="sm" onPress={retryConfig} /> : <Button label="Go back" icon="chevron-left" size="sm" onPress={() => router.back()} />}
             </>
           )}
         </View>
@@ -88,7 +93,7 @@ var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}ca
       ) : (
         <WebView
           ref={web}
-          source={{ uri: `${webBaseUrl}${safePath}` }}
+          source={{ uri: `${webOrigin}${safePath}` }}
           injectedJavaScriptBeforeContentLoaded={signIn}
           sharedCookiesEnabled
           domStorageEnabled
@@ -99,15 +104,16 @@ var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}ca
           onError={() => setFailed(true)}
           // UPI and other app links (upi://, intent://) are handed to the phone, not the WebView.
           onShouldStartLoadWithRequest={(req) => {
-            if (/^https?:/i.test(req.url) || req.url === "about:blank") return true;
-            void Linking.openURL(req.url).catch(() => undefined);
+            if (req.url === "about:blank") return true;
+            if (/^https:/i.test(req.url)) return true;
+            if (/^(upi|tel|mailto):/i.test(req.url)) void Linking.openURL(req.url).catch(() => undefined);
             return false;
           }}
           style={{ flex: 1 }}
         />
       )}
-      {loading && !failed && (
-        <View style={styles.loading} pointerEvents="none">
+      {loading && !failed && !!webOrigin && (
+        <View style={[styles.loading, { backgroundColor: colors.background }]} pointerEvents="none">
           <ActivityIndicator color={brand.orange} />
           <Text style={[styles.loadingText, { color: colors.muted }]}>Opening securely…</Text>
         </View>
@@ -118,6 +124,6 @@ var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}ca
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: space.sm, padding: space.xxl },
-  loading: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", gap: space.sm, backgroundColor: "rgba(255,255,255,0.85)" },
+  loading: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", gap: space.sm, opacity: 0.96 },
   loadingText: { fontFamily: fonts.medium, fontSize: 13 },
 });

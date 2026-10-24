@@ -88,7 +88,7 @@ export default function Ticket() {
         </View>
       ) : (
         <View style={[styles.composer, { paddingBottom: bottomGap + space.sm, backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-          {send.isError && <Text style={[type.caption, { color: colors.danger }]}>{errorMessage(send.error)}</Text>}
+          {send.isError && <Text accessibilityRole="alert" style={[type.caption, { color: colors.danger }]}>{errorMessage(send.error)}</Text>}
           <View style={styles.composerRow}>
             <TextInput
               style={[styles.input, { backgroundColor: colors.mutedBg, color: colors.text }]}

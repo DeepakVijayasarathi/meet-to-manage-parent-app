@@ -1,9 +1,10 @@
 import Feather from "@expo/vector-icons/Feather";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, type Href } from "expo-router";
 import { Fragment, useMemo, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { errorMessage } from "@/api/client";
@@ -13,7 +14,7 @@ import type { ApiClassSession, ApiParentChildSummary } from "@/api/types";
 import { Appear, Badge, Button, Card, EmptyState, IconTile, Logo, SectionHeader, Skeleton, StatCard, type IconName, type Tone } from "@/components/ui";
 import { SessionRow, dayLabel } from "@/components/sessions";
 import { belongsToChild, classTitle, countdownLabel, isJoinable, isLive, joinDisplayName, nextClass } from "@/lib/schedule";
-import { brand, fonts, radius, space, type, useColors, type Colors } from "@/lib/theme";
+import { brand, fonts, layout, radius, space, type, useColors, type Colors } from "@/lib/theme";
 import { useTabBarSpace } from "@/lib/tabBar";
 import { useAppConfig } from "@/state/appConfig";
 import { useRequiredSession, useSession } from "@/state/session";
@@ -44,6 +45,7 @@ function greeting(): string {
 export default function Dashboard() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const tabBarSpace = useTabBarSpace();
   const { signOut } = useSession();
   const session = useRequiredSession();
@@ -91,8 +93,12 @@ export default function Dashboard() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <View style={[styles.ambientTop, { backgroundColor: colors.primarySoft }]} />
+        <View style={[styles.ambientSide, { backgroundColor: colors.infoSoft }]} />
+      </View>
 
-      <View style={[styles.topBar, { paddingTop: insets.top + space.sm, backgroundColor: colors.card }]}>
+      <View style={[styles.topBar, { paddingTop: insets.top + space.sm }]}>
         <Logo size={34} withWordmark />
         <Pressable
           onPress={() => setMenuOpen((v) => !v)}
@@ -107,8 +113,8 @@ export default function Dashboard() {
 
       {menuOpen && (
         <>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} accessibilityLabel="Close menu" />
-          <Card style={[styles.menu, { top: insets.top + 60 }]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} accessibilityRole="button" accessibilityLabel="Close account menu" />
+          <Card style={[styles.menu, { top: insets.top + 60, right: Math.max(space.lg, (windowWidth - layout.contentMax) / 2) }]}>
             <Text style={[type.heading, { color: colors.text }]} numberOfLines={1}>{session.userName}</Text>
             <Text style={[type.caption, { color: colors.muted, marginTop: 2 }]}>Parent account</Text>
             <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
@@ -301,11 +307,12 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
   const join = () => router.push({ pathname: "/live/[id]", params: { id: session.id, title: classTitle(session), name: displayName } });
   return (
     <LinearGradient
-      colors={[brand.orangeFrom, brand.orangeTo]}
+      colors={[colors.primary, colors.accent]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.hero}
     >
+      <Image source={require("@/assets/images/mtm-logo.png")} style={styles.heroWatermark} contentFit="contain" pointerEvents="none" />
       <Pressable
         onPress={open}
         accessibilityRole="button"
@@ -400,13 +407,15 @@ function RecentRow({ session, colors }: { session: ApiClassSession; colors: Colo
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.xl, paddingBottom: space.sm, zIndex: 2 },
+  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.xl, paddingBottom: space.sm, zIndex: 2, width: "100%", maxWidth: layout.contentMax, alignSelf: "center" },
+  ambientTop: { position: "absolute", width: 320, height: 320, borderRadius: 160, top: -210, right: -100, opacity: 0.72 },
+  ambientSide: { position: "absolute", width: 220, height: 220, borderRadius: 110, top: 420, left: -175, opacity: 0.25 },
   avatar: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
   avatarText: { fontFamily: fonts.bold, fontSize: 14 },
-  menu: { position: "absolute", right: space.lg, width: 220, zIndex: 10, elevation: 8, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
+  menu: { position: "absolute", width: 220, zIndex: 10, elevation: 8, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
   menuDivider: { height: StyleSheet.hairlineWidth, marginVertical: space.md },
   menuItem: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.xs },
-  body: { paddingHorizontal: space.xl, paddingTop: space.md, gap: space.xxl },
+  body: { paddingHorizontal: space.xl, paddingTop: space.md, gap: space.xxl, width: "100%", maxWidth: layout.contentMax, alignSelf: "center" },
   announcement: { flexDirection: "row", gap: space.sm, padding: space.md, borderRadius: radius.md },
   greeting: { gap: space.xs, marginTop: space.xs },
   childTabs: { gap: space.sm },
@@ -414,6 +423,7 @@ const styles = StyleSheet.create({
   childInitial: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   childInitialText: { fontFamily: fonts.bold, fontSize: 13 },
   hero: { borderRadius: radius.xl, padding: space.xl, gap: space.lg, overflow: "hidden" },
+  heroWatermark: { position: "absolute", width: 190, height: 190, right: -42, bottom: -58, opacity: 0.1, transform: [{ rotate: "-8deg" }] },
   heroDetails: { gap: space.lg },
   heroTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   heroLabel: { flexDirection: "row", alignItems: "center", gap: 8 },

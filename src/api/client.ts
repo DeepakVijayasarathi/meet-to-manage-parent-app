@@ -32,9 +32,12 @@ export function onUnauthorized(handler: (() => void) | null) {
 export async function apiFetch<T>(path: string, init: RequestInit & { token?: string | null } = {}): Promise<T> {
   const { token, headers, ...rest } = init;
   let response: Response;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20_000);
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...rest,
+      signal: rest.signal ?? controller.signal,
       headers: {
         Accept: "application/json",
         ...CLIENT_HEADERS,
@@ -43,8 +46,12 @@ export async function apiFetch<T>(path: string, init: RequestInit & { token?: st
         ...headers,
       },
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError")
+      throw new ApiError(0, "The request took too long. Check your connection and try again.");
     throw new ApiError(0, "Can't reach Meet to Manage. Check your internet connection and try again.");
+  } finally {
+    clearTimeout(timeout);
   }
   if (!response.ok) {
     if (response.status === 401 && token) unauthorizedHandler?.();

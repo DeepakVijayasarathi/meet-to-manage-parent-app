@@ -10,7 +10,7 @@ import { getInvoices } from "@/api/parent";
 import type { ApiInvoice, ApiInvoiceStatus } from "@/api/types";
 import { Badge, Button, Card, Divider, EmptyState, ErrorCard, ListRow, Screen, Segmented, Skeleton, type Tone } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { brand, fonts, radius, space, type, useColors } from "@/lib/theme";
+import { fonts, radius, space, type, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
 const STATUS: Record<ApiInvoiceStatus, { label: string; tone: Tone }> = {
@@ -46,7 +46,7 @@ export default function Fees() {
   return (
     <Screen title="Fees" subtitle="Invoices and payments for your family" refreshing={invoices.isRefetching} onRefresh={() => invoices.refetch()}>
       {invoices.isPending ? <Skeleton height={170} style={{ borderRadius: radius.xl }} /> : invoices.isError ? null : (
-        <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.summary}>
+        <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.summary}>
           <Text style={[type.overline, { color: "rgba(255,255,255,0.9)" }]}>Outstanding balance</Text>
           <Text style={styles.amount}>{formatCurrency(outstanding, currency)}</Text>
           <Text style={styles.summaryNote}>

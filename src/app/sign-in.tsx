@@ -3,18 +3,20 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useRef, useState, type ComponentRef } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { errorMessage } from "@/api/client";
 import { KeyboardSafe } from "@/components/keyboard";
 import { Button } from "@/components/ui";
-import { brand, elevation, fonts, radius, space, type, useColors } from "@/lib/theme";
+import { brand, elevation, fonts, layout, radius, space, type, useColors } from "@/lib/theme";
 import { useSession } from "@/state/session";
 
 export default function SignIn() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const landscape = width > height;
   const { signIn, notice, clearNotice } = useSession();
   const [identifier, setIdentifier] = useState("");
   const [pin, setPin] = useState("");
@@ -57,7 +59,7 @@ export default function SignIn() {
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
-        <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
+        <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.hero, landscape && styles.heroLandscape, { paddingTop: insets.top + (landscape ? 20 : 48) }]}>
           {/* Soft concentric rings: depth without a hard-edged shape. */}
           <View style={[styles.ring, { width: 420, height: 420, borderRadius: 210, top: -210, right: -160 }]} />
           <View style={[styles.ring, { width: 280, height: 280, borderRadius: 140, top: -120, right: -90 }]} />
@@ -69,8 +71,8 @@ export default function SignIn() {
           <Text style={styles.brandLine}>
             Meet <Text style={styles.brandTo}>to</Text> Manage
           </Text>
-          <Text style={styles.heroTitle}>Welcome back</Text>
-          <Text style={styles.heroSubtitle}>
+          <Text style={[styles.heroTitle, landscape && styles.heroTitleLandscape]}>Welcome back</Text>
+          <Text style={[styles.heroSubtitle, landscape && styles.heroSubtitleLandscape]}>
             Classes, progress and fees for your family, all in one place.
           </Text>
         </LinearGradient>
@@ -177,16 +179,19 @@ export default function SignIn() {
 const styles = StyleSheet.create({
   flexGrow: { flexGrow: 1 },
   hero: { paddingHorizontal: space.xxl, paddingBottom: 76, alignItems: "center", overflow: "hidden" },
+  heroLandscape: { paddingBottom: 52 },
   ring: { position: "absolute", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(255,255,255,0.05)" },
   logoTile: { width: 88, height: 88, borderRadius: 28, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
   logo: { width: 64, height: 64 },
   brandLine: { marginTop: space.lg, fontFamily: fonts.bold, fontSize: 15, letterSpacing: 0.3, color: "#FFFFFF" },
   brandTo: { fontFamily: fonts.medium, color: "rgba(255,255,255,0.8)" },
   heroTitle: { marginTop: space.lg, fontFamily: fonts.bold, fontSize: 34, letterSpacing: -1, lineHeight: 40, color: "#FFFFFF", textAlign: "center" },
+  heroTitleLandscape: { marginTop: space.sm, fontSize: 28, lineHeight: 34 },
   heroSubtitle: { marginTop: space.sm, fontFamily: fonts.medium, fontSize: 15, lineHeight: 22, color: "rgba(255,255,255,0.88)", textAlign: "center", maxWidth: 320 },
+  heroSubtitleLandscape: { marginTop: space.xs, maxWidth: 520 },
   // flexGrow, not flex: 1 — flex's zero basis let the scroll content shrink to the screen, so it never overflowed and never scrolled.
   panel: { flexGrow: 1, marginTop: -40, borderTopLeftRadius: 36, borderTopRightRadius: 36, paddingHorizontal: space.xxl, paddingTop: space.xxxl, justifyContent: "space-between" },
-  inner: { width: "100%", maxWidth: 440, alignSelf: "center", gap: space.xl },
+  inner: { width: "100%", maxWidth: layout.formMax, alignSelf: "center", gap: space.xl },
   group: { gap: space.sm },
   field: { flexDirection: "row", alignItems: "center", gap: space.md, borderWidth: 1.5, borderRadius: radius.lg, paddingLeft: 8, paddingRight: space.lg, minHeight: 58 },
   fieldIcon: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },

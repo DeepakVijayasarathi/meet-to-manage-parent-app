@@ -1,4 +1,5 @@
 import { useColorScheme } from "react-native";
+import { useAppConfig } from "@/state/appConfig";
 
 // Built from the logo: its orange gradient (tailwind brand.orange from/to) for actions and
 // highlights, its charcoal for text and dark surfaces, on calm neutral greys.
@@ -11,14 +12,15 @@ export const brand = {
 } as const;
 
 const light = {
-  background: "#FFFFFF",
+  background: "#FAFAF9",
   card: "#FFFFFF",
   text: brand.charcoal as string,
   textSoft: "#4B5260",
   muted: "#6B7280",
-  mutedBg: "#F7F8FA",
-  border: "#EEF0F3",
+  mutedBg: "#F4F4F2",
+  border: "#E8E7E3",
   primary: brand.orange as string,
+  accent: brand.orangeTo as string,
   primaryText: "#FFFFFF",
   primarySoft: "rgba(242, 107, 29, 0.10)",
   primaryInk: "#C2410C",
@@ -43,6 +45,7 @@ const dark: typeof light = {
   mutedBg: "#1F232B",
   border: "#272B33",
   primary: "#FF8A3D",
+  accent: "#F2611A",
   primaryText: "#FFFFFF",
   primarySoft: "rgba(255, 138, 61, 0.14)",
   primaryInk: "#FFA45C",
@@ -61,7 +64,19 @@ const dark: typeof light = {
 export type Colors = typeof light;
 
 export function useColors(): Colors {
-  return useColorScheme() === "dark" ? dark : light;
+  const base = useColorScheme() === "dark" ? dark : light;
+  const configured = useAppConfig().config?.brand.primaryColor;
+  const configuredAccent = useAppConfig().config?.brand.accentColor;
+  const primary = configured && /^#[0-9a-f]{6}$/i.test(configured) ? configured : null;
+  if (!primary) return base;
+  const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(primary.slice(i, i + 2), 16));
+  return {
+    ...base,
+    primary,
+    accent: configuredAccent && /^#[0-9a-f]{6}$/i.test(configuredAccent) ? configuredAccent : primary,
+    primaryInk: primary,
+    primarySoft: `rgba(${r}, ${g}, ${b}, ${base === dark ? 0.18 : 0.11})`,
+  };
 }
 
 /** Custom fonts carry their weight in the family name (fontWeight is ignored on Android). */
@@ -74,7 +89,10 @@ export const fonts = {
 
 /** 4-pt spacing scale and radii shared by every screen. */
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
-export const radius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 } as const;
+export const radius = { sm: 10, md: 16, lg: 22, xl: 30, pill: 999 } as const;
+
+/** Keeps tablet and web layouts comfortably readable instead of stretching cards edge-to-edge. */
+export const layout = { contentMax: 760, navigationMax: 720, formMax: 480 } as const;
 
 /** Soft, wide shadows (modern "floating" surfaces); colour comes from the palette's `shadow`. */
 export const elevation = {

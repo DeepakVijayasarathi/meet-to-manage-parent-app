@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createContext, use, useEffect, useMemo, type PropsWithChildren } from "react";
+import { createContext, use, useCallback, useEffect, useMemo, type PropsWithChildren } from "react";
 
 import { ApiError } from "@/api/client";
 import { getAppConfig } from "@/api/parent";
@@ -15,9 +15,11 @@ interface AppConfigValue {
   /** Where the app opens website pages (payments, adding a child). Null until the academy has configured it. */
   webBaseUrl: string | null;
   announcement: string | null;
+  error: string | null;
+  retry: () => void;
 }
 
-const AppConfigContext = createContext<AppConfigValue>({ config: null, isLoading: false, webBaseUrl: null, announcement: null });
+const AppConfigContext = createContext<AppConfigValue>({ config: null, isLoading: false, webBaseUrl: null, announcement: null, error: null, retry: () => undefined });
 
 export function useAppConfig(): AppConfigValue {
   return use(AppConfigContext);
@@ -42,13 +44,17 @@ export function AppConfigProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (query.error instanceof ApiError && query.error.status === 403) signOut(query.error.message || APP_ACCESS_WITHDRAWN);
   }, [query.error, signOut]);
+  const { refetch } = query;
+  const retry = useCallback(() => { void refetch(); }, [refetch]);
 
   const value = useMemo<AppConfigValue>(() => ({
     config: query.data ?? null,
     isLoading: !!session && query.isPending,
     webBaseUrl: query.data?.webBaseUrl ?? null,
     announcement: query.data?.announcement ?? null,
-  }), [query.data, query.isPending, session]);
+    error: query.isError ? (query.error instanceof Error ? query.error.message : "Could not load academy settings.") : null,
+    retry,
+  }), [query.data, query.error, query.isError, query.isPending, retry, session]);
 
   return <AppConfigContext value={value}>{children}</AppConfigContext>;
 }

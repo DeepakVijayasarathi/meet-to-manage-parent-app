@@ -3,11 +3,12 @@
     "name": "Meet to Manage",
     "slug": "meettomanage-student",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "meettomanagestudent",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "supportsTablet": true,
       "icon": "./assets/expo.icon",
       "infoPlist": {
         "UIBackgroundModes": [

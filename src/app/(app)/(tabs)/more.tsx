@@ -6,7 +6,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { Card, Divider, ListRow, Logo, Screen, type IconName, type Tone } from "@/components/ui";
 import { initials } from "@/lib/format";
-import { brand, fonts, radius, space, type, useColors } from "@/lib/theme";
+import { fonts, radius, space, type, useColors } from "@/lib/theme";
 import { useRequiredSession, useSession } from "@/state/session";
 
 /** `href` is a native screen; `portal` a web-portal page opened in-app, already signed in. */
@@ -51,7 +51,7 @@ export default function More() {
   return (
     <Screen title="More">
       <Card style={styles.profile}>
-        <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} style={styles.avatar}>
+        <LinearGradient colors={[colors.primary, colors.accent]} style={styles.avatar}>
           <Text style={styles.avatarText}>{initials(session.userName)}</Text>
         </LinearGradient>
         <View style={{ flex: 1, gap: 2 }}>

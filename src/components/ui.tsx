@@ -5,12 +5,13 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Children, isValidElement, type ComponentProps, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeInDown, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KeyboardSafe } from "@/components/keyboard";
 import { useTabBarSpace } from "@/lib/tabBar";
-import { brand, elevation, fonts, radius, space, type, useColors, type Colors } from "@/lib/theme";
+import { brand, elevation, fonts, layout, radius, space, type, useColors, type Colors } from "@/lib/theme";
+import { useAppConfig } from "@/state/appConfig";
 
 export type IconName = ComponentProps<typeof Feather>["name"];
 export type Tone = "brand" | "success" | "warning" | "danger" | "info" | "neutral";
@@ -28,8 +29,9 @@ export function toneColors(colors: Colors, tone: Tone): { bg: string; fg: string
 
 /** Slides a section up into place; `index` staggers siblings. */
 export function Appear({ index = 0, children, style }: { index?: number; children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const reduceMotion = useReducedMotion();
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 60).duration(380)} style={style}>
+    <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(Math.min(index, 8) * 60).duration(380)} style={style}>
       {children}
     </Animated.View>
   );
@@ -37,18 +39,19 @@ export function Appear({ index = 0, children, style }: { index?: number; childre
 
 export function Logo({ size = 40, withWordmark, light }: { size?: number; withWordmark?: boolean; light?: boolean }) {
   const colors = useColors();
+  const configured = useAppConfig().config?.brand;
+  const logoSource = configured?.logoUrl ? { uri: configured.logoUrl } : require("@/assets/images/mtm-logo.png");
+  const name = configured?.name?.trim() || "Meet to Manage";
   return (
     <View style={styles.logoRow} accessibilityRole="image" accessibilityLabel="Meet to Manage">
       <View style={[styles.logoTile, { width: size, height: size, borderRadius: size * 0.28 }]}>
-        <Image source={require("@/assets/images/mtm-logo.png")} style={{ width: size * 0.74, height: size * 0.74 }} contentFit="contain" />
+        <Image source={logoSource} style={{ width: size * 0.74, height: size * 0.74 }} contentFit="contain" />
       </View>
       {withWordmark && (
         <>
           <View style={[styles.logoDivider, { backgroundColor: light ? "rgba(255,255,255,0.35)" : colors.text }]} />
           {/* Mirrors the logo lockup: orange "Meet" / "Manage", smaller charcoal "to". */}
-          <Text style={[styles.wordmark, { color: light ? brand.orangeFrom : colors.primary }]}>
-            Meet <Text style={[styles.wordmarkTo, { color: light ? "#FFFFFF" : colors.text }]}>to</Text> Manage
-          </Text>
+          <Text style={[styles.wordmark, { color: light ? "#FFFFFF" : colors.text }]} numberOfLines={1}>{name}</Text>
         </>
       )}
     </View>
@@ -142,7 +145,7 @@ export function Button({ label, onPress, icon, variant = "primary", disabled, lo
       style={({ pressed }) => [{ opacity: disabled && !loading ? 0.45 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }, style]}
     >
       {variant === "primary" ? (
-        <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.button, size === "sm" && styles.buttonSm, styles.buttonShadow]}>
+        <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.button, size === "sm" && styles.buttonSm, styles.buttonShadow, { shadowColor: colors.primary }]}>
           {content}
         </LinearGradient>
       ) : (
@@ -178,6 +181,7 @@ export function Screen({ title, subtitle, right, children, refreshing, onRefresh
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const tabBar = useTabBarSpace();
+  const backdrop = <View pointerEvents="none" style={StyleSheet.absoluteFill}><View style={[styles.ambientTop, { backgroundColor: colors.primarySoft }]} /><View style={[styles.ambientSide, { backgroundColor: colors.infoSoft }]} /></View>;
   const header = title ? (
     <View style={styles.screenHeader}>
       <View style={{ flex: 1, gap: 2 }}>
@@ -188,10 +192,11 @@ export function Screen({ title, subtitle, right, children, refreshing, onRefresh
     </View>
   ) : null;
   if (!scroll) {
-    return <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: title ? insets.top + space.md : 0 }]}>{header}{children}</View>;
+    return <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: title ? insets.top + space.md : 0 }]}>{backdrop}<View style={styles.content}>{header}{children}</View></View>;
   }
   return (
     <KeyboardSafe style={{ backgroundColor: colors.background }}>
+    {backdrop}
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       keyboardShouldPersistTaps="handled"
@@ -199,10 +204,12 @@ export function Screen({ title, subtitle, right, children, refreshing, onRefresh
       contentContainerStyle={[styles.screenBody, { paddingTop: title ? insets.top + space.lg : space.lg, paddingBottom: space.xxxl + (tabBar ? tabBar + insets.bottom : insets.bottom) }]}
       refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} /> : undefined}
     >
-      {header ? <Appear>{header}</Appear> : null}
-      {Children.toArray(children).filter(Boolean).map((child, i) => (
-        <Appear key={isValidElement(child) && child.key != null ? String(child.key) : i} index={i + 1}>{child}</Appear>
-      ))}
+      <View style={styles.content}>
+        {header ? <Appear>{header}</Appear> : null}
+        {Children.toArray(children).filter(Boolean).map((child, i) => (
+          <Appear key={isValidElement(child) && child.key != null ? String(child.key) : i} index={i + 1}>{child}</Appear>
+        ))}
+      </View>
     </ScrollView>
     </KeyboardSafe>
   );
@@ -320,8 +327,11 @@ const styles = StyleSheet.create({
   buttonSm: { minHeight: 40, borderRadius: radius.pill, paddingHorizontal: space.lg },
   buttonText: { fontFamily: fonts.bold, fontSize: 16, letterSpacing: 0.1 },
   buttonTextSm: { fontSize: 14 },
-  screen: { flex: 1, paddingHorizontal: space.lg },
-  screenBody: { paddingHorizontal: space.xl, gap: space.xl },
+  screen: { flex: 1, paddingHorizontal: space.lg, alignItems: "center" },
+  screenBody: { paddingHorizontal: space.xl },
+  content: { width: "100%", maxWidth: layout.contentMax, alignSelf: "center", gap: space.xl },
+  ambientTop: { position: "absolute", width: 300, height: 300, borderRadius: 150, top: -190, right: -110, opacity: 0.72 },
+  ambientSide: { position: "absolute", width: 220, height: 220, borderRadius: 110, top: 280, left: -180, opacity: 0.28 },
   screenHeader: { flexDirection: "row", alignItems: "flex-end", gap: space.md },
   listRow: { flexDirection: "row", alignItems: "center", gap: space.md, paddingHorizontal: space.lg, paddingVertical: 14, minHeight: 64 },
   rowTitle: { fontFamily: fonts.semibold, fontSize: 15 },

@@ -1,5 +1,6 @@
 import Feather from "@expo/vector-icons/Feather";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tabs } from "expo-router";
 import type { ComponentProps } from "react";
@@ -10,7 +11,7 @@ import { getNotifications } from "@/api/parent";
 import { useKeyboardVisible } from "@/components/keyboard";
 import type { IconName } from "@/components/ui";
 import { TAB_BAR_SPACE, TabBarSpace } from "@/lib/tabBar";
-import { brand, elevation, fonts, radius, useColors } from "@/lib/theme";
+import { elevation, fonts, layout, radius, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
 const TABS: Record<string, { title: string; icon: IconName }> = {
@@ -66,13 +67,17 @@ function FloatingTabBar({ state, emitter, navigateToTab, unread }: TabBarProps &
               style={[styles.item, focused && styles.itemActive]}
             >
               {focused ? (
-                <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.activePill}>
-                  <Feather name={tab.icon} size={18} color="#FFFFFF" />
+                <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.activePill}>
+                  {route.name === "index"
+                    ? <View style={styles.brandTab}><Image source={require("@/assets/images/mtm-logo.png")} style={styles.brandTabImage} contentFit="contain" /></View>
+                    : <Feather name={tab.icon} size={18} color="#FFFFFF" />}
                   <Text style={styles.activeLabel} numberOfLines={1}>{tab.title}</Text>
                 </LinearGradient>
               ) : (
                 <View style={styles.icon}>
-                  <Feather name={tab.icon} size={21} color={colors.muted} />
+                  {route.name === "index"
+                    ? <Image source={require("@/assets/images/mtm-logo.png")} style={styles.homeLogo} contentFit="contain" />
+                    : <Feather name={tab.icon} size={21} color={colors.muted} />}
                   {badge && (
                     <View style={[styles.badge, { backgroundColor: colors.primary, borderColor: colors.card }]}>
                       <Text style={styles.badgeText}>{badge}</Text>
@@ -89,13 +94,16 @@ function FloatingTabBar({ state, emitter, navigateToTab, unread }: TabBarProps &
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16 },
+  wrap: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, width: "100%", maxWidth: layout.navigationMax, alignSelf: "center", marginHorizontal: "auto" },
   bar: { flexDirection: "row", alignItems: "center", borderRadius: radius.pill, borderWidth: 1, padding: 6, ...elevation.high },
   item: { flex: 1, alignItems: "center", justifyContent: "center", height: 52 },
   itemActive: { flex: 2.1 },
   activePill: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "stretch", height: 52, borderRadius: radius.pill, paddingHorizontal: 12 },
   activeLabel: { fontFamily: fonts.bold, fontSize: 13, color: "#FFFFFF" },
   icon: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  homeLogo: { width: 25, height: 25 },
+  brandTab: { width: 28, height: 28, borderRadius: 9, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
+  brandTabImage: { width: 22, height: 22 },
   badge: { position: "absolute", top: 4, right: 2, minWidth: 18, height: 18, borderRadius: 9, borderWidth: 2, paddingHorizontal: 3, alignItems: "center", justifyContent: "center" },
   badgeText: { fontFamily: fonts.bold, fontSize: 9, color: "#FFFFFF" },
 });
