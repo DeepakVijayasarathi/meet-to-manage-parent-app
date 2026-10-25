@@ -266,6 +266,8 @@ export interface ApiAppConfig {
   announcement: string | null;
   /** Minutes before a class starts that Join Class is enabled. */
   joinOpensMinutesBefore: number;
+  /** First-launch tour set by the administrator; empty fields fall back to the app's own wording. */
+  welcome?: { enabled: boolean; title: string | null; subtitle: string | null; features: string | null };
   brand: {
     name: string | null; logoUrl: string | null; primaryColor: string | null; accentColor: string | null;
     fontFamily: string | null; headingFont: string | null;
