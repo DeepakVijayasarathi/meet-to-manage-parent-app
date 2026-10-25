@@ -11,6 +11,8 @@ export interface Session {
   token: string;
   expiresAtUtc: string;
   userName: string;
+  /** Optional for compatibility with sessions saved before roles were persisted. */
+  role?: "Parent" | "Student";
   tenantCode: string | null;
 }
 
@@ -80,6 +82,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       token: response.accessToken,
       expiresAtUtc: response.expiresAtUtc,
       userName: response.user.fullName,
+      role: response.user.role as "Parent" | "Student",
       tenantCode: response.tenantCode ?? null,
     };
     await writeItem(SESSION_KEY, JSON.stringify(next));

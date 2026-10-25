@@ -1,6 +1,8 @@
 import { Stack } from "expo-router";
 
 import { WelcomeGate } from "@/components/Welcome";
+import { AppMonitoringController, BiometricGate, NotificationController, OfflineBanner } from "@/components/MobileServices";
+import { OperationalGate } from "@/components/OperationalGate";
 import { fonts, useColors } from "@/lib/theme";
 
 /** Tabs at the root of the signed-in app; detail screens push on top with a back button. */
@@ -8,6 +10,7 @@ export default function AppLayout() {
   const colors = useColors();
   return (
     <>
+    <OfflineBanner />
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: colors.card },
@@ -33,6 +36,10 @@ export default function AppLayout() {
       <Stack.Screen name="support/new" options={{ title: "New request", presentation: "modal" }} />
       <Stack.Screen name="support/[id]" options={{ title: "Request" }} />
     </Stack>
+    <NotificationController />
+    <AppMonitoringController />
+    <BiometricGate />
+    <OperationalGate />
     <WelcomeGate />
     </>
   );

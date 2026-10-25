@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, type Href } from "expo-router";
 import { Fragment, useMemo, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { errorMessage } from "@/api/client";
@@ -30,11 +30,11 @@ const FEE: Record<ApiParentChildSummary["feeStatus"], { label: string; tone: Ton
   suspended: { label: "On hold", tone: "danger", note: "Contact your academy" },
 };
 
-const QUICK_LINKS: { label: string; icon: IconName; tone: Tone; href: Href }[] = [
-  { label: "Progress reports", icon: "file-text", tone: "brand", href: "/reports" as Href },
-  { label: "Resources", icon: "book-open", tone: "info", href: "/resources" as Href },
-  { label: "Recordings", icon: "play-circle", tone: "success", href: "/recordings" as Href },
-  { label: "Get help", icon: "life-buoy", tone: "warning", href: "/support" as Href },
+const QUICK_LINKS: { key: "reports" | "resources" | "recordings" | "support"; label: string; icon: IconName; tone: Tone; href: Href }[] = [
+  { key: "reports", label: "Progress reports", icon: "file-text", tone: "brand", href: "/reports" as Href },
+  { key: "resources", label: "Resources", icon: "book-open", tone: "info", href: "/resources" as Href },
+  { key: "recordings", label: "Recordings", icon: "play-circle", tone: "success", href: "/recordings" as Href },
+  { key: "support", label: "Get help", icon: "life-buoy", tone: "warning", href: "/support" as Href },
 ];
 
 function greeting(): string {
@@ -49,7 +49,7 @@ export default function Dashboard() {
   const tabBarSpace = useTabBarSpace();
   const { signOut } = useSession();
   const session = useRequiredSession();
-  const { announcement } = useAppConfig();
+  const { announcement, config } = useAppConfig();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -90,6 +90,13 @@ export default function Dashboard() {
   const refresh = () => { void dashboard.refetch(); void schedule.refetch(); void children.refetch(); };
   const loadError = dashboard.error ?? schedule.error;
   const initials = session.userName.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "?";
+  const quickOrder = (config?.quickActions ?? "reports,resources,recordings,support").split(",").map(x => x.trim());
+  const quickLinks = quickOrder.map(key => QUICK_LINKS.find(x => x.key === key)).filter((x): x is (typeof QUICK_LINKS)[number] => !!x && config?.features?.[x.key] !== false);
+  const confirmSignOut = () => Alert.alert(
+    "Sign out?",
+    "You'll need your email or mobile number and PIN to sign in again.",
+    [{ text: "Cancel", style: "cancel" }, { text: "Sign out", style: "destructive", onPress: () => signOut() }],
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -116,9 +123,9 @@ export default function Dashboard() {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} accessibilityRole="button" accessibilityLabel="Close account menu" />
           <Card style={[styles.menu, { top: insets.top + 60, right: Math.max(space.lg, (windowWidth - layout.contentMax) / 2) }]}>
             <Text style={[type.heading, { color: colors.text }]} numberOfLines={1}>{session.userName}</Text>
-            <Text style={[type.caption, { color: colors.muted, marginTop: 2 }]}>Parent account</Text>
+            <Text style={[type.caption, { color: colors.muted, marginTop: 2 }]}>{session.role ?? "Parent"} account</Text>
             <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
-            <Pressable onPress={() => signOut()} accessibilityRole="button" style={styles.menuItem}>
+            <Pressable onPress={confirmSignOut} accessibilityRole="button" style={styles.menuItem}>
               <Feather name="log-out" size={16} color={colors.danger} />
               <Text style={[type.label, { color: colors.danger }]}>Sign out</Text>
             </Pressable>
@@ -180,7 +187,7 @@ export default function Dashboard() {
               action={<Button label="Try again" icon="refresh-cw" size="sm" variant="secondary" onPress={refresh} style={{ marginTop: space.sm }} />}
             />
           </Card>
-        ) : dashboard.data && !dashboard.data.enrollmentFormCompleted ? (
+        ) : dashboard.data && !dashboard.data.enrollmentFormCompleted && config?.features?.enrollment !== false ? (
           <Card>
             <EmptyState
               icon="file-text"
@@ -197,7 +204,7 @@ export default function Dashboard() {
               )}
             </Appear>
 
-            {feedback.data?.[0] && (
+            {config?.features?.feedback !== false && feedback.data?.[0] && (
               <Pressable
                 onPress={() => router.push("/feedback" as Href)}
                 accessibilityRole="button"
@@ -235,7 +242,7 @@ export default function Dashboard() {
             <Appear index={3}>
               <SectionHeader title="Quick access" />
               <View style={styles.quickGrid}>
-                {QUICK_LINKS.map((q) => (
+                {quickLinks.map((q) => (
                   <Pressable
                     key={q.label}
                     onPress={() => router.push(q.href)}

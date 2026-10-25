@@ -13,6 +13,7 @@ import type { IconName } from "@/components/ui";
 import { TAB_BAR_SPACE, TabBarSpace } from "@/lib/tabBar";
 import { elevation, fonts, layout, radius, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
+import { useAppConfig } from "@/state/appConfig";
 
 const TABS: Record<string, { title: string; icon: IconName }> = {
   index: { title: "Home", icon: "home" },
@@ -26,6 +27,7 @@ type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>
 
 export default function TabsLayout() {
   const session = useRequiredSession();
+  const { config } = useAppConfig();
   // Shares its cache with the Updates screen, so reading notifications clears the badge.
   const feed = useQuery({ queryKey: ["notifications", session.token], queryFn: () => getNotifications(session.token), refetchInterval: 120_000 });
   const unread = feed.data?.unreadCount ?? 0;
@@ -33,7 +35,11 @@ export default function TabsLayout() {
   return (
     <TabBarSpace value={TAB_BAR_SPACE}>
       <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <FloatingTabBar {...props} unread={unread} />}>
-        {Object.entries(TABS).map(([name, tab]) => <Tabs.Screen key={name} name={name} options={{ title: tab.title }} />)}
+        {Object.entries(TABS).map(([name, tab]) => {
+          const feature = name === "classes" ? "classes" : name === "fees" ? "fees" : name === "updates" ? "updates" : null;
+          const enabled = !feature || config?.features?.[feature] !== false;
+          return <Tabs.Screen key={name} name={name} options={{ title: tab.title, href: enabled ? undefined : null }} />;
+        })}
       </Tabs>
     </TabBarSpace>
   );

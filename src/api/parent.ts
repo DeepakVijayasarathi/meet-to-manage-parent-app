@@ -124,3 +124,10 @@ export function submitEnrollment(token: string, answers: Record<string, unknown>
 export function getAppConfig(token: string): Promise<ApiAppConfig> {
   return apiFetch<ApiAppConfig>("/api/app/config", { token });
 }
+
+export function sendAppHeartbeat(token: string, payload: {
+  installationId: string; platform: string; appVersion: string; buildNumber?: string | null; runtimeVersion?: string | null;
+  notificationsEnabled: boolean; biometricLockEnabled: boolean; successfulSync: boolean; errorCategory?: string | null;
+}): Promise<{ id: string; lastSeenAtUtc: string }> {
+  return apiFetch("/api/app/installations/heartbeat", { token, method: "POST", body: JSON.stringify(payload) });
+}

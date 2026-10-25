@@ -1,14 +1,15 @@
 import { DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from "@expo-google-fonts/dm-sans";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useState, type ComponentProps } from "react";
-import { useColorScheme } from "react-native";
+import { useEffect, useState, type ComponentProps } from "react";
+import { AppState, Platform, useColorScheme, type AppStateStatus } from "react-native";
 
 import { AppConfigProvider } from "@/state/appConfig";
 import { SessionProvider, useSession } from "@/state/session";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,8 +20,10 @@ export default function RootLayout() {
   const fontsReady = fontsLoaded || !!fontError;
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } }));
   return (
+    <AppErrorBoundary>
     <ThemeProvider value={(colorScheme === "dark" ? DarkTheme : DefaultTheme) as ComponentProps<typeof ThemeProvider>["value"]}>
       <QueryClientProvider client={queryClient}>
+        <AppFocusController />
         <SessionProvider>
           <AppConfigProvider>
             <SplashController fontsReady={fontsReady} />
@@ -30,7 +33,19 @@ export default function RootLayout() {
         </SessionProvider>
       </QueryClientProvider>
     </ThemeProvider>
+    </AppErrorBoundary>
   );
+}
+
+/** Let React Query refresh stale data after a family returns to the app. */
+function AppFocusController() {
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    const onChange = (status: AppStateStatus) => focusManager.setFocused(status === "active");
+    const subscription = AppState.addEventListener("change", onChange);
+    return () => subscription.remove();
+  }, []);
+  return null;
 }
 
 function SplashController({ fontsReady }: { fontsReady: boolean }) {

@@ -266,6 +266,11 @@ export interface ApiAppConfig {
   announcement: string | null;
   /** Minutes before a class starts that Join Class is enabled. */
   joinOpensMinutesBefore: number;
+  maintenance?: { active: boolean; message: string | null; startsAtUtc: string | null; endsAtUtc: string | null };
+  minimumVersion?: string | null;
+  forceUpgrade?: boolean;
+  quickActions?: string | null;
+  features?: { classes: boolean; fees: boolean; updates: boolean; reports: boolean; resources: boolean; recordings: boolean; enrollment: boolean; support: boolean; feedback: boolean };
   /** First-launch tour set by the administrator; empty fields fall back to the app's own wording. */
   welcome?: { enabled: boolean; title: string | null; subtitle: string | null; features: string | null };
   brand: {
