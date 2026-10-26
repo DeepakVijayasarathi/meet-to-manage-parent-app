@@ -4,7 +4,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Notifications from "expo-notifications";
 import { AndroidImportance } from "expo-notifications";
 import { router, type Href } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { getSchedule } from "@/api/parent";
@@ -32,6 +32,8 @@ export function BiometricGate() {
   const { signOut } = useSession();
   const [locked, setLocked] = useState(false);
   const [checking, setChecking] = useState(true);
+  const enabled = useRef(false);
+  const backgroundedAt = useRef<number | null>(null);
 
   const unlock = useCallback(async () => {
     const result = await LocalAuthentication.authenticateAsync({ promptMessage: "Unlock Meet to Manage", cancelLabel: "Use PIN sign-in" });
@@ -39,12 +41,32 @@ export function BiometricGate() {
   }, []);
 
   useEffect(() => {
-    readFlag(BIOMETRIC_LOCK_KEY).then(async (enabled) => {
-      if (enabled && await LocalAuthentication.hasHardwareAsync() && await LocalAuthentication.isEnrolledAsync()) {
+    readFlag(BIOMETRIC_LOCK_KEY).then(async (isEnabled) => {
+      enabled.current = isEnabled;
+      if (isEnabled && await LocalAuthentication.hasHardwareAsync() && await LocalAuthentication.isEnrolledAsync()) {
         setLocked(true);
         await unlock();
       }
     }).catch((error) => captureError(error, "biometric_gate")).finally(() => setChecking(false));
+    return subscribeFlag(BIOMETRIC_LOCK_KEY, (isEnabled) => { enabled.current = isEnabled; });
+  }, [unlock]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "background" || state === "inactive") {
+        backgroundedAt.current ??= Date.now();
+        return;
+      }
+      if (state === "active") {
+        const elapsed = backgroundedAt.current === null ? 0 : Date.now() - backgroundedAt.current;
+        backgroundedAt.current = null;
+        if (enabled.current && elapsed >= 30_000) {
+          setLocked(true);
+          void unlock();
+        }
+      }
+    });
+    return () => subscription.remove();
   }, [unlock]);
 
   if (checking || !locked) return null;
@@ -89,7 +111,7 @@ export function NotificationController() {
             body: `Your class with ${item.teacherName} starts in ${REMINDER_LEAD_MINUTES} minutes.`,
             data: { kind: "class-reminder", url: `/class/${item.id}` },
           },
-          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: reminder.at },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: reminder.at, ...(Platform.OS === "android" ? { channelId: "classes" } : {}) },
         });
       }
     };

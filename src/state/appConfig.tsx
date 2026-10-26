@@ -5,6 +5,7 @@ import { ApiError } from "@/api/client";
 import { getAppConfig } from "@/api/parent";
 import type { ApiAppConfig } from "@/api/types";
 import { useSession } from "@/state/session";
+import { reportAppHeartbeat } from "@/lib/appMonitoring";
 
 const APP_ACCESS_WITHDRAWN = "The mobile app isn't enabled for your academy. Please contact your academy, or use the website.";
 
@@ -44,6 +45,9 @@ export function AppConfigProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (query.error instanceof ApiError && query.error.status === 403) signOut(query.error.message || APP_ACCESS_WITHDRAWN);
   }, [query.error, signOut]);
+  useEffect(() => {
+    if (session && query.data) void reportAppHeartbeat(session.token, { successfulSync: true }).catch(() => undefined);
+  }, [query.data, session]);
   const { refetch } = query;
   const retry = useCallback(() => { void refetch(); }, [refetch]);
 

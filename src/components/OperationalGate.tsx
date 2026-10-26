@@ -1,26 +1,23 @@
 import Constants from "expo-constants";
 import Feather from "@expo/vector-icons/Feather";
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, Logo } from "@/components/ui";
 import { fonts, space, useColors } from "@/lib/theme";
+import { isOlderVersion } from "@/lib/appVersion";
 import { useAppConfig } from "@/state/appConfig";
 import { useSession } from "@/state/session";
-
-const parts = (v: string) => v.split(".").map(x => Number.parseInt(x, 10) || 0);
-const olderThan = (current: string, minimum: string) => {
-  const a = parts(current), b = parts(minimum);
-  for (let i = 0; i < Math.max(a.length, b.length); i++) { if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) < (b[i] ?? 0); }
-  return false;
-};
 
 export function OperationalGate() {
   const colors = useColors();
   const { config, retry } = useAppConfig();
   const { signOut } = useSession();
+  const [dismissedVersion, setDismissedVersion] = useState<string | null>(null);
   if (!config) return null;
   const current = Constants.expoConfig?.version ?? "0.0.0";
-  const upgrade = !!config.minimumVersion && olderThan(current, config.minimumVersion);
+  const upgrade = !!config.minimumVersion && isOlderVersion(current, config.minimumVersion);
   const blocked = config.maintenance?.active || (upgrade && config.forceUpgrade);
+  if (upgrade && !blocked && dismissedVersion === config.minimumVersion) return null;
   if (!blocked && !upgrade) return null;
   const maintenance = !!config.maintenance?.active;
   return <View style={[StyleSheet.absoluteFill, styles.root, { backgroundColor: colors.background }]} accessibilityViewIsModal>
@@ -30,7 +27,8 @@ export function OperationalGate() {
     <Text style={[styles.body, { color: colors.muted }]}>{maintenance ? config.maintenance?.message || "We're improving the app. Please try again shortly." : `Version ${config.minimumVersion} or newer is required. You currently have ${current}.`}</Text>
     {config.maintenance?.endsAtUtc && <Text style={[styles.note, { color: colors.muted }]}>Expected back {new Date(config.maintenance.endsAtUtc).toLocaleString()}</Text>}
     <Button label="Check again" icon="refresh-cw" onPress={retry} />
-    {!blocked && <Text style={[styles.note, { color: colors.muted }]}>You can continue, but updating is recommended.</Text>}
+    {!blocked && <Button label="Continue for now" variant="ghost" onPress={() => setDismissedVersion(config.minimumVersion ?? current)} />}
+    {!blocked && <Text style={[styles.note, { color: colors.muted }]}>Updating is recommended, but you can continue with this version.</Text>}
     {blocked && <Button label="Sign out" variant="ghost" onPress={() => signOut()} />}
   </View>;
 }
