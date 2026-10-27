@@ -187,6 +187,8 @@ export interface MitoProgressResponse {
   attendancePercent: number | null;
   summary: string;
 }
+export interface MitoQuizQuestion { id: string; prompt: string; courseName: string | null; options: { id: string; text: string }[] }
+export interface MitoQuizAnswer { correct: boolean; correctOptionId: string; correctAnswer: string; feedback: string }
 
 export type SupportTicketStatus = "Open" | "InProgress" | "Resolved" | "Closed";
 export type SupportTicketCategory = "ClassSchedule" | "Teacher" | "BillingPayment" | "Technical" | "Enrollment" | "Other";

@@ -1,7 +1,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Speech from "expo-speech";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, type Href } from "expo-router";
 import { useEffect, useRef, useState, type ElementRef } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -64,6 +64,7 @@ export default function MitoScreen() {
           <Action label="Ask a doubt" icon="help-circle" active={mode === "doubt"} onPress={() => action("doubt", "Help me understand a topic. Ask which topic I need help with.")} colors={colors} />
           <Action label="Today's plan" icon="calendar" active={mode === "plan"} onPress={() => action("plan", "Create my study plan for today from my real schedule.")} colors={colors} />
           <Action label="Review a mistake" icon="refresh-cw" active={mode === "review"} onPress={() => action("review", "Help me review a mistake. Ask me what question I got wrong.")} colors={colors} />
+          <Action label="Practice quiz" icon="award" active={false} onPress={() => router.push(`/mito-quiz?childId=${encodeURIComponent(childId)}` as Href)} colors={colors} />
         </ScrollView>
         <View style={[styles.context, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <ContextItem icon="calendar" text={today.isPending ? "Loading today..." : `${today.data?.items.length ?? 0} classes today`} colors={colors} />
@@ -90,7 +91,7 @@ export default function MitoScreen() {
   );
 }
 
-function Action({ label, icon, active, onPress, colors }: { label: string; icon: "help-circle" | "calendar" | "refresh-cw"; active: boolean; onPress: () => void; colors: Colors }) {
+function Action({ label, icon, active, onPress, colors }: { label: string; icon: "help-circle" | "calendar" | "refresh-cw" | "award"; active: boolean; onPress: () => void; colors: Colors }) {
   return <Pressable onPress={onPress} style={[styles.action, { backgroundColor: active ? colors.primary : colors.card, borderColor: active ? colors.primary : colors.border }]}><Feather name={icon} size={15} color={active ? "#FFFFFF" : colors.primary} /><Text style={[type.label, { color: active ? "#FFFFFF" : colors.text }]}>{label}</Text></Pressable>;
 }
 

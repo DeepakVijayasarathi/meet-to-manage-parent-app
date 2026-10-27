@@ -1,7 +1,7 @@
 import { apiFetch } from "./client";
 import type {
   ApiAppConfig, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
-  ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, MitoChatResponse, MitoChatTurn, MitoProgressResponse, MitoTodayResponse, SupportTicketCategory,
+  ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, MitoChatResponse, MitoChatTurn, MitoProgressResponse, MitoQuizAnswer, MitoQuizQuestion, MitoTodayResponse, SupportTicketCategory,
 } from "./types";
 
 export function login(identifier: string, pin: string): Promise<LoginResponse> {
@@ -146,4 +146,12 @@ export function getMitoToday(token: string, childId: string): Promise<MitoTodayR
 
 export function getMitoProgress(token: string, childId: string): Promise<MitoProgressResponse> {
   return apiFetch<MitoProgressResponse>(`/api/mito/progress?childId=${encodeURIComponent(childId)}`, { token });
+}
+
+export function startMitoQuiz(token: string, childId: string, count = 5): Promise<MitoQuizQuestion[]> {
+  return apiFetch<MitoQuizQuestion[]>("/api/mito/quiz", { token, method: "POST", body: JSON.stringify({ childId, count }) });
+}
+
+export function answerMitoQuiz(token: string, childId: string, questionId: string, optionId: string): Promise<MitoQuizAnswer> {
+  return apiFetch<MitoQuizAnswer>("/api/mito/quiz/answer", { token, method: "POST", body: JSON.stringify({ childId, questionId, optionId }) });
 }
