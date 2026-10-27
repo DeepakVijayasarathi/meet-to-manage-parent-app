@@ -49,7 +49,14 @@
         }
       ],
       "expo-video",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#F97316",
+          "defaultChannel": "default"
+        }
+      ],
       "expo-secure-store",
       [
         "expo-local-authentication",
