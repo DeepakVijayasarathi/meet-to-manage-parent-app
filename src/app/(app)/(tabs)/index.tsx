@@ -178,6 +178,20 @@ export default function Dashboard() {
           </ScrollView>
         )}
 
+        {child && session.role !== "Student" && (
+          <Pressable
+            onPress={() => router.push(`/mito?childId=${encodeURIComponent(child.childId)}&name=${encodeURIComponent(child.name)}` as Href)}
+            accessibilityRole="button"
+            accessibilityLabel={`Talk to Mito for ${child.name}`}
+          >
+            <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.mitoCard}>
+              <View style={styles.mitoFace}><Text style={styles.mitoEyes}>•  •</Text><Text style={styles.mitoSmile}>⌣</Text></View>
+              <View style={{ flex: 1 }}><Text style={styles.mitoTitle}>Hi! I am Mito.</Text><Text style={styles.mitoBody}>Ask a doubt · Plan today · Learn aloud</Text></View>
+              <Feather name="arrow-right" size={20} color="#FFFFFF" />
+            </LinearGradient>
+          </Pressable>
+        )}
+
         {loadError && !dashboard.data && !schedule.data ? (
           <Card>
             <EmptyState
@@ -429,6 +443,12 @@ const styles = StyleSheet.create({
   childTab: { flexDirection: "row", alignItems: "center", gap: space.sm, borderRadius: radius.pill, borderWidth: 1, paddingLeft: 4, paddingRight: space.lg, paddingVertical: 4 },
   childInitial: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   childInitialText: { fontFamily: fonts.bold, fontSize: 13 },
+  mitoCard: { flexDirection: "row", alignItems: "center", gap: space.md, borderRadius: radius.xl, padding: space.lg },
+  mitoFace: { width: 54, height: 46, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.95)", alignItems: "center", justifyContent: "center" },
+  mitoEyes: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 16, color: brand.orangeTo },
+  mitoSmile: { fontFamily: fonts.bold, fontSize: 18, lineHeight: 15, color: brand.orangeTo },
+  mitoTitle: { fontFamily: fonts.bold, fontSize: 18, color: "#FFFFFF" },
+  mitoBody: { fontFamily: fonts.medium, fontSize: 12, color: "rgba(255,255,255,0.86)", marginTop: 2 },
   hero: { borderRadius: radius.xl, padding: space.xl, gap: space.lg, overflow: "hidden" },
   heroWatermark: { position: "absolute", width: 190, height: 190, right: -42, bottom: -58, opacity: 0.1, transform: [{ rotate: "-8deg" }] },
   heroDetails: { gap: space.lg },

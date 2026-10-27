@@ -162,6 +162,32 @@ export interface AskChatbotResponse {
   escalated: boolean;
 }
 
+export interface MitoChatTurn {
+  role: "user" | "assistant";
+  text: string;
+}
+
+export interface MitoChatResponse {
+  reply: string;
+  expression: "happy" | "thinking" | "encouraging" | string;
+  suggestedPrompts: string[];
+}
+
+export interface MitoTodayResponse {
+  studentName: string;
+  generatedAtUtc: string;
+  items: { sessionId: string; title: string; teacherName: string; startsAtUtc: string; endsAtUtc: string; status: string }[];
+}
+
+export interface MitoProgressResponse {
+  studentName: string;
+  academicLevel: string | null;
+  classesCompleted: number;
+  classesRemaining: number;
+  attendancePercent: number | null;
+  summary: string;
+}
+
 export type SupportTicketStatus = "Open" | "InProgress" | "Resolved" | "Closed";
 export type SupportTicketCategory = "ClassSchedule" | "Teacher" | "BillingPayment" | "Technical" | "Enrollment" | "Other";
 

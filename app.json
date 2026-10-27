@@ -26,9 +26,11 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ],
-      "package": "cloud.meettomanage.parent"
+      "package": "cloud.meettomanage.familyapp"
     },
     "web": {
       "output": "server",
@@ -82,9 +84,9 @@
         }
       },
       "eas": {
-        "projectId": "d9073293-965b-46f7-b601-7598fd2bb67b"
+        "projectId": "6be24fbb-4b4c-476d-b549-7b5c42953c40"
       }
     },
-    "owner": "karthi0106"
+    "owner": "deepak56"
   }
 }

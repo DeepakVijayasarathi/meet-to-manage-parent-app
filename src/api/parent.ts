@@ -1,7 +1,7 @@
 import { apiFetch } from "./client";
 import type {
   ApiAppConfig, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
-  ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, SupportTicketCategory,
+  ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, MitoChatResponse, MitoChatTurn, MitoProgressResponse, MitoTodayResponse, SupportTicketCategory,
 } from "./types";
 
 export function login(identifier: string, pin: string): Promise<LoginResponse> {
@@ -130,4 +130,20 @@ export function sendAppHeartbeat(token: string, payload: {
   notificationsEnabled: boolean; biometricLockEnabled: boolean; successfulSync: boolean; errorCategory?: string | null;
 }): Promise<{ id: string; lastSeenAtUtc: string }> {
   return apiFetch("/api/app/installations/heartbeat", { token, method: "POST", body: JSON.stringify(payload) });
+}
+
+export function askMito(token: string, childId: string, messages: MitoChatTurn[], mode = "general"): Promise<MitoChatResponse> {
+  return apiFetch<MitoChatResponse>("/api/mito/chat", {
+    token,
+    method: "POST",
+    body: JSON.stringify({ childId, messages, mode }),
+  });
+}
+
+export function getMitoToday(token: string, childId: string): Promise<MitoTodayResponse> {
+  return apiFetch<MitoTodayResponse>(`/api/mito/today?childId=${encodeURIComponent(childId)}`, { token });
+}
+
+export function getMitoProgress(token: string, childId: string): Promise<MitoProgressResponse> {
+  return apiFetch<MitoProgressResponse>(`/api/mito/progress?childId=${encodeURIComponent(childId)}`, { token });
 }
