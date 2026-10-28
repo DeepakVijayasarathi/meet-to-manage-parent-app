@@ -120,6 +120,11 @@ export function NotificationController() {
   }, [enabled, schedule.data, session.token]);
 
   useEffect(() => {
+    // Channel id the backend names in every FCM message; Android drops pushes for channels that do not exist.
+    if (Platform.OS === "android") void Notifications.setNotificationChannelAsync("default", { name: "Updates", importance: AndroidImportance.HIGH }).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
     const redirect = (notification: Notifications.Notification) => {
       const url = notification.request.content.data?.url;
       if (typeof url === "string" && url.startsWith("/")) router.push(url as Href);

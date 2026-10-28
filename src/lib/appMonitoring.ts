@@ -19,6 +19,18 @@ async function installationId(): Promise<string> {
   return created;
 }
 
+/** Native FCM registration token (Android only; the tenant's backend sends through its own Firebase project). */
+async function devicePushToken(granted: boolean): Promise<string | null> {
+  if (!granted || Platform.OS !== "android") return null;
+  try {
+    const { data } = await Notifications.getDevicePushTokenAsync();
+    return typeof data === "string" ? data : null;
+  } catch {
+    // No google-services.json in this build, or Play services unavailable: local reminders still work.
+    return null;
+  }
+}
+
 export async function reportAppHeartbeat(token: string, options: { successfulSync?: boolean; errorCategory?: string; force?: boolean } = {}) {
   if (!options.force) {
     const last = Number(await readItem(LAST_HEARTBEAT_KEY));
@@ -37,6 +49,7 @@ export async function reportAppHeartbeat(token: string, options: { successfulSyn
     biometricLockEnabled: await readFlag(BIOMETRIC_LOCK_KEY),
     successfulSync: !!options.successfulSync,
     errorCategory: options.errorCategory ?? null,
+    pushToken: await devicePushToken(permission.granted),
   });
   await writeItem(LAST_HEARTBEAT_KEY, String(Date.now()));
 }
