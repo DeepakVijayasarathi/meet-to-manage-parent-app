@@ -28,8 +28,10 @@ export default function AppLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="mito" options={{ title: "Mito" }} />
-      <Stack.Screen name="mito-quiz" options={{ title: "Mito Practice" }} />
+      <Stack.Protected guard={enabled("mito")}>
+        <Stack.Screen name="mito" options={{ title: config?.mito?.displayName || "Mito" }} />
+        <Stack.Screen name="mito-quiz" options={{ title: `${config?.mito?.displayName || "Mito"} Practice` }} />
+      </Stack.Protected>
       <Stack.Protected guard={enabled("classes")}>
         <Stack.Screen name="class/[id]" options={{ title: "Class" }} />
         <Stack.Screen name="live/[id]" options={{ headerShown: false, presentation: "fullScreenModal" }} />

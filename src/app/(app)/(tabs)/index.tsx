@@ -178,16 +178,17 @@ export default function Dashboard() {
           </ScrollView>
         )}
 
-        {child && session.role !== "Student" && (
+        {child && session.role !== "Student" && config?.features?.mito !== false && (
           <Pressable
             onPress={() => router.push(`/mito?childId=${encodeURIComponent(child.childId)}&name=${encodeURIComponent(child.name)}` as Href)}
             accessibilityRole="button"
             accessibilityLabel={`Talk to Mito for ${child.name}`}
+            style={({ pressed }) => [{ opacity: pressed ? 0.86 : 1, transform: [{ scale: pressed ? 0.99 : 1 }] }]}
           >
             <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.mitoCard}>
-              <View style={styles.mitoFace}><Text style={styles.mitoEyes}>•  •</Text><Text style={styles.mitoSmile}>⌣</Text></View>
-              <View style={{ flex: 1 }}><Text style={styles.mitoTitle}>Hi! I am Mito.</Text><Text style={styles.mitoBody}>Ask a doubt · Plan today · Learn aloud</Text></View>
-              <Feather name="arrow-right" size={20} color="#FFFFFF" />
+              <View style={styles.mitoFace}><Feather name="zap" size={25} color={colors.primary} /></View>
+              <View style={{ flex: 1 }}><Text style={styles.mitoEyebrow}>AI LEARNING COMPANION</Text><Text style={styles.mitoTitle}>Learn with {config?.mito?.displayName || "Mito"}</Text><Text style={styles.mitoBody}>{config?.mito?.chatEnabled === false ? "Practice with approved quizzes" : "Ask questions, plan today, or practise"}</Text></View>
+              <View style={styles.mitoArrow}><Feather name="arrow-right" size={18} color="#FFFFFF" /></View>
             </LinearGradient>
           </Pressable>
         )}
@@ -444,11 +445,11 @@ const styles = StyleSheet.create({
   childInitial: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   childInitialText: { fontFamily: fonts.bold, fontSize: 13 },
   mitoCard: { flexDirection: "row", alignItems: "center", gap: space.md, borderRadius: radius.xl, padding: space.lg },
-  mitoFace: { width: 54, height: 46, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.95)", alignItems: "center", justifyContent: "center" },
-  mitoEyes: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 16, color: brand.orangeTo },
-  mitoSmile: { fontFamily: fonts.bold, fontSize: 18, lineHeight: 15, color: brand.orangeTo },
+  mitoFace: { width: 54, height: 54, borderRadius: 19, backgroundColor: "rgba(255,255,255,0.96)", alignItems: "center", justifyContent: "center" },
+  mitoEyebrow: { fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1, color: "rgba(255,255,255,0.72)", marginBottom: 2 },
   mitoTitle: { fontFamily: fonts.bold, fontSize: 18, color: "#FFFFFF" },
   mitoBody: { fontFamily: fonts.medium, fontSize: 12, color: "rgba(255,255,255,0.86)", marginTop: 2 },
+  mitoArrow: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" },
   hero: { borderRadius: radius.xl, padding: space.xl, gap: space.lg, overflow: "hidden" },
   heroWatermark: { position: "absolute", width: 190, height: 190, right: -42, bottom: -58, opacity: 0.1, transform: [{ rotate: "-8deg" }] },
   heroDetails: { gap: space.lg },
