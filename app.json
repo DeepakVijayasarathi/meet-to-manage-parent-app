@@ -30,7 +30,7 @@
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT"
       ],
-      "package": "cloud.meettomanage.familyapp"
+      "package": "cloud.meettomanage.parent"
     },
     "web": {
       "output": "server",
@@ -91,9 +91,9 @@
         }
       },
       "eas": {
-        "projectId": "6be24fbb-4b4c-476d-b549-7b5c42953c40"
+        "projectId": "d9073293-965b-46f7-b601-7598fd2bb67b"
       }
     },
-    "owner": "deepak56"
+    "owner": "karthi0106"
   }
 }
