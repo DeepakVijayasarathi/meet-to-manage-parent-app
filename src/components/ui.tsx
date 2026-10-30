@@ -192,13 +192,13 @@ export function Screen({ title, subtitle, right, children, refreshing, onRefresh
     </View>
   ) : null;
   if (!scroll) {
-    return <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: title ? insets.top + space.md : 0 }]}>{backdrop}<View style={styles.content}>{header}{children}</View></View>;
+    return <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: title ? insets.top + space.md : 0 }]}>{backdrop}<View style={[styles.content, styles.fixedContent]}>{header}{children}</View></View>;
   }
   return (
     <KeyboardSafe style={{ backgroundColor: colors.background }}>
     {backdrop}
     <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={{ flex: 1, backgroundColor: "transparent" }}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       contentContainerStyle={[styles.screenBody, { paddingTop: title ? insets.top + space.lg : space.lg, paddingBottom: space.xxxl + (tabBar ? tabBar + insets.bottom : insets.bottom) }]}
@@ -290,11 +290,11 @@ export function Chips<T extends string>({ options, value, onChange }: { options:
   );
 }
 
-export function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void }) {
+export function ErrorCard({ message, onRetry, actionLabel = "Try again", actionIcon = "refresh-cw" }: { message: string; onRetry: () => void; actionLabel?: string; actionIcon?: IconName }) {
   return (
     <Card>
       <EmptyState icon="wifi-off" title="Something went wrong" description={message}
-        action={<Button label="Try again" icon="refresh-cw" size="sm" variant="secondary" onPress={onRetry} style={{ marginTop: space.sm }} />} />
+        action={<Button label={actionLabel} icon={actionIcon} size="sm" variant="secondary" onPress={onRetry} style={{ marginTop: space.sm }} />} />
     </Card>
   );
 }
@@ -330,6 +330,10 @@ const styles = StyleSheet.create({
   screen: { flex: 1, paddingHorizontal: space.lg, alignItems: "center" },
   screenBody: { paddingHorizontal: space.xl },
   content: { width: "100%", maxWidth: layout.contentMax, alignSelf: "center", gap: space.xl },
+  // A flex child (chat thread, map, camera, etc.) needs a bounded container on
+  // non-scrolling screens. Without this, Android measures it at its minimum
+  // height and the entire interface collapses into a strip at the top.
+  fixedContent: { flex: 1, alignSelf: "center" },
   ambientTop: { position: "absolute", width: 300, height: 300, borderRadius: 150, top: -190, right: -110, opacity: 0.72 },
   ambientSide: { position: "absolute", width: 220, height: 220, borderRadius: 110, top: 280, left: -180, opacity: 0.28 },
   screenHeader: { flexDirection: "row", alignItems: "flex-end", gap: space.md },

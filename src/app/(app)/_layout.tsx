@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 
 import { WelcomeGate } from "@/components/Welcome";
-import { AppMonitoringController, BiometricGate, NotificationController, OfflineBanner } from "@/components/MobileServices";
+import { AppMonitoringController, BiometricGate, ConfigSyncBanner, NotificationController, OfflineBanner } from "@/components/MobileServices";
 import { OperationalGate } from "@/components/OperationalGate";
 import { fonts, useColors } from "@/lib/theme";
 import { useAppConfig } from "@/state/appConfig";
@@ -17,6 +17,7 @@ export default function AppLayout() {
   return (
     <>
     <OfflineBanner />
+    <ConfigSyncBanner />
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: colors.card },

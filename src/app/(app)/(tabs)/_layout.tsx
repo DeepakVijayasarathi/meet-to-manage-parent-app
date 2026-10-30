@@ -28,13 +28,18 @@ type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>
 export default function TabsLayout() {
   const session = useRequiredSession();
   const { config } = useAppConfig();
+  const logoSource = config?.brand.logoUrl ? { uri: config.brand.logoUrl } : require("@/assets/images/mtm-logo.png");
   // Shares its cache with the Updates screen, so reading notifications clears the badge.
   const feed = useQuery({ queryKey: ["notifications", session.token], queryFn: () => getNotifications(session.token), refetchInterval: 120_000 });
   const unread = feed.data?.unreadCount ?? 0;
+  const hiddenTabs = new Set(Object.keys(TABS).filter((name) => {
+    const feature = name === "classes" ? "classes" : name === "fees" ? "fees" : name === "updates" ? "updates" : null;
+    return !!feature && config?.features?.[feature] === false;
+  }));
 
   return (
     <TabBarSpace value={TAB_BAR_SPACE}>
-      <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <FloatingTabBar {...props} unread={unread} />}>
+      <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <FloatingTabBar {...props} unread={unread} hiddenTabs={hiddenTabs} logoSource={logoSource} />}>
         {Object.entries(TABS).map(([name, tab]) => {
           const feature = name === "classes" ? "classes" : name === "fees" ? "fees" : name === "updates" ? "updates" : null;
           const enabled = !feature || config?.features?.[feature] !== false;
@@ -46,7 +51,7 @@ export default function TabsLayout() {
 }
 
 /** A floating, rounded footer; the active tab is a logo-orange circle with its label beside it. */
-function FloatingTabBar({ state, emitter, navigateToTab, unread }: TabBarProps & { unread: number }) {
+function FloatingTabBar({ state, emitter, navigateToTab, unread, hiddenTabs, logoSource }: TabBarProps & { unread: number; hiddenTabs: Set<string>; logoSource: number | { uri: string } }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   // On Android the bar would otherwise ride up on top of the keyboard.
@@ -54,10 +59,10 @@ function FloatingTabBar({ state, emitter, navigateToTab, unread }: TabBarProps &
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       <View style={[styles.bar, { backgroundColor: colors.card, shadowColor: colors.shadow, borderColor: colors.border }]} accessibilityRole="tablist">
-        {state.routes.map((route, index) => {
+        {state.routes.filter((route) => !hiddenTabs.has(route.name)).map((route) => {
           const tab = TABS[route.name];
           if (!tab) return null;
-          const focused = state.index === index;
+          const focused = state.routes[state.index]?.key === route.key;
           const badge = route.name === "updates" && unread > 0 ? (unread > 9 ? "9+" : String(unread)) : null;
           const onPress = () => {
             const event = emitter.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
@@ -75,14 +80,14 @@ function FloatingTabBar({ state, emitter, navigateToTab, unread }: TabBarProps &
               {focused ? (
                 <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.activePill}>
                   {route.name === "index"
-                    ? <View style={styles.brandTab}><Image source={require("@/assets/images/mtm-logo.png")} style={styles.brandTabImage} contentFit="contain" /></View>
+                    ? <View style={styles.brandTab}><Image source={logoSource} style={styles.brandTabImage} contentFit="contain" /></View>
                     : <Feather name={tab.icon} size={18} color="#FFFFFF" />}
                   <Text style={styles.activeLabel} numberOfLines={1}>{tab.title}</Text>
                 </LinearGradient>
               ) : (
                 <View style={styles.icon}>
                   {route.name === "index"
-                    ? <Image source={require("@/assets/images/mtm-logo.png")} style={styles.homeLogo} contentFit="contain" />
+                    ? <Image source={logoSource} style={styles.homeLogo} contentFit="contain" />
                     : <Feather name={tab.icon} size={21} color={colors.muted} />}
                   {badge && (
                     <View style={[styles.badge, { backgroundColor: colors.primary, borderColor: colors.card }]}>

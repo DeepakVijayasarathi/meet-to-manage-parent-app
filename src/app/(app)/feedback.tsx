@@ -6,8 +6,8 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { errorMessage } from "@/api/client";
 import { getPendingFeedback, submitFeedback } from "@/api/parent";
-import { Button, Card, EmptyState, IconTile, Screen, Skeleton } from "@/components/ui";
-import { brand, fonts, radius, space, type, useColors } from "@/lib/theme";
+import { Button, Card, EmptyState, ErrorCard, IconTile, Screen, Skeleton } from "@/components/ui";
+import { fonts, radius, space, type, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
 const LABELS = ["", "Poor", "Fair", "Good", "Very good", "Excellent"];
@@ -31,6 +31,7 @@ export default function Feedback() {
   });
 
   if (pending.isPending) return <Screen><Skeleton height={120} /><Skeleton height={200} /></Screen>;
+  if (pending.isError) return <Screen><ErrorCard message={errorMessage(pending.error)} onRetry={() => pending.refetch()} /></Screen>;
   if (!item) return <Screen><Card><EmptyState icon="check-circle" title="Thank you!" description="There's nothing waiting for your feedback right now." /></Card></Screen>;
 
   const subject = item.kind === "Demo" ? "the demo class" : item.courseName ?? "the course";
@@ -48,7 +49,7 @@ export default function Feedback() {
         <View style={styles.stars} accessibilityRole="adjustable" accessibilityLabel={`Rating, ${rating} of 5`}>
           {[1, 2, 3, 4, 5].map((n) => (
             <Pressable key={n} onPress={() => setRating(n)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? "s" : ""}`}>
-              <View style={[styles.star, { backgroundColor: n <= rating ? brand.orange : colors.mutedBg }]}>
+              <View style={[styles.star, { backgroundColor: n <= rating ? colors.primary : colors.mutedBg }]}>
                 <Feather name="star" size={24} color={n <= rating ? "#FFFFFF" : colors.muted} />
               </View>
             </Pressable>
@@ -76,7 +77,7 @@ export default function Feedback() {
 
 const styles = StyleSheet.create({
   intro: { alignItems: "center", gap: space.sm, paddingVertical: space.xl },
-  stars: { flexDirection: "row", gap: space.sm },
-  star: { width: 50, height: 50, borderRadius: radius.md, alignItems: "center", justifyContent: "center" },
+  stars: { flexDirection: "row", gap: 6 },
+  star: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   comment: { alignSelf: "stretch", borderWidth: 1, borderRadius: radius.md, padding: space.md, minHeight: 100, fontFamily: fonts.regular, fontSize: 15 },
 });

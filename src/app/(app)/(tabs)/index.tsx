@@ -309,6 +309,7 @@ export default function Dashboard() {
 
 function UpNext({ session, colors, displayName }: { session?: ApiClassSession; colors: Colors; displayName: string }) {
   const { config } = useAppConfig();
+  const logoSource = config?.brand.logoUrl ? { uri: config.brand.logoUrl } : require("@/assets/images/mtm-logo.png");
   if (!session) {
     return (
       <Card>
@@ -334,7 +335,7 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
       end={{ x: 1, y: 1 }}
       style={styles.hero}
     >
-      <Image source={require("@/assets/images/mtm-logo.png")} style={styles.heroWatermark} contentFit="contain" pointerEvents="none" />
+      <Image source={logoSource} style={styles.heroWatermark} contentFit="contain" pointerEvents="none" />
       <Pressable
         onPress={open}
         accessibilityRole="button"
@@ -349,15 +350,15 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
           </View>
           {countdown !== "Tomorrow" && (
             <View style={[styles.heroPill, { backgroundColor: live ? "#16A34A" : "#FFFFFF" }]}>
-              <Feather name={live ? "radio" : "clock"} size={12} color={live ? "#FFFFFF" : brand.orangeTo} />
-              <Text style={[styles.heroPillText, { color: live ? "#FFFFFF" : brand.orangeTo }]}>{countdown}</Text>
+              <Feather name={live ? "radio" : "clock"} size={12} color={live ? "#FFFFFF" : colors.primary} />
+              <Text style={[styles.heroPillText, { color: live ? "#FFFFFF" : colors.primary }]}>{countdown}</Text>
             </View>
           )}
         </View>
 
         <View style={styles.heroMain}>
           <View style={styles.heroDate}>
-            <Text style={styles.heroDateTop}>{day === "Today" ? day.toUpperCase() : start.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase()}</Text>
+            <Text style={[styles.heroDateTop, { color: colors.primary }]}>{day === "Today" ? day.toUpperCase() : start.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase()}</Text>
             <Text style={styles.heroDateDay}>{start.getDate()}</Text>
             <Text style={styles.heroDateMonth}>{start.toLocaleDateString(undefined, { month: "short" }).toUpperCase()}</Text>
           </View>
@@ -369,7 +370,7 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
         </View>
 
         <View style={styles.heroFooter}>
-          <View style={styles.teacherAvatar}><Text style={styles.teacherInitial}>{session.teacherName.trim().charAt(0).toUpperCase()}</Text></View>
+          <View style={styles.teacherAvatar}><Text style={[styles.teacherInitial, { color: colors.primary }]}>{session.teacherName.trim().charAt(0).toUpperCase()}</Text></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.heroCaption}>Teacher</Text>
             <Text style={styles.heroTeacherName} numberOfLines={1}>{session.teacherName}</Text>
@@ -386,8 +387,8 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
       </Pressable>
       {joinable && (
         <Pressable onPress={join} accessibilityRole="button" accessibilityLabel={`Join ${classTitle(session)}`} style={({ pressed }) => [styles.joinButton, pressed && { opacity: 0.9 }]}>
-          <Feather name="video" size={18} color={brand.orangeTo} />
-          <Text style={styles.joinText}>{live ? "Join class now" : "Join class"}</Text>
+          <Feather name="video" size={18} color={colors.primary} />
+          <Text style={[styles.joinText, { color: colors.primary }]}>{live ? "Join class now" : "Join class"}</Text>
         </Pressable>
       )}
     </LinearGradient>
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
   heroPillText: { fontFamily: fonts.bold, fontSize: 12, color: "#FFFFFF" },
   heroMain: { flexDirection: "row", alignItems: "center", gap: space.lg },
   heroDate: { width: 68, paddingVertical: 10, borderRadius: radius.lg, alignItems: "center", backgroundColor: "#FFFFFF" },
-  heroDateTop: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1, color: brand.orangeTo },
+  heroDateTop: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1 },
   heroDateDay: { fontFamily: fonts.bold, fontSize: 26, lineHeight: 30, color: brand.charcoal },
   heroDateMonth: { fontFamily: fonts.semibold, fontSize: 10, letterSpacing: 1, color: "#6B7280" },
   heroTime: { fontFamily: fonts.bold, fontSize: 30, letterSpacing: -0.8, color: "#FFFFFF", lineHeight: 34 },
@@ -468,12 +469,12 @@ const styles = StyleSheet.create({
   heroTitle: { fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF", marginTop: 4 },
   heroFooter: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "rgba(255,255,255,0.3)" },
   teacherAvatar: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFFFF" },
-  teacherInitial: { fontFamily: fonts.bold, fontSize: 14, color: brand.orangeTo },
+  teacherInitial: { fontFamily: fonts.bold, fontSize: 14 },
   heroCaption: { fontFamily: fonts.medium, fontSize: 11, color: "rgba(255,255,255,0.8)" },
   heroTeacherName: { fontFamily: fonts.semibold, fontSize: 14, color: "#FFFFFF" },
   heroChip: { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 5, backgroundColor: "rgba(255,255,255,0.2)" },
   joinButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.sm, backgroundColor: "#FFFFFF", borderRadius: radius.md, minHeight: 50 },
-  joinText: { fontFamily: fonts.bold, fontSize: 16, color: brand.orangeTo },
+  joinText: { fontFamily: fonts.bold, fontSize: 16 },
   feedback: { flexDirection: "row", alignItems: "center", gap: space.md },
   heroChipText: { fontFamily: fonts.semibold, fontSize: 12, color: "#FFFFFF" },
   grid: { gap: space.md },

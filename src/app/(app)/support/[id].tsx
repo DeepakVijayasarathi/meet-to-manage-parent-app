@@ -11,7 +11,7 @@ import { KeyboardSafe, useKeyboardVisible } from "@/components/keyboard";
 import { Badge, Card, ErrorCard, Skeleton } from "@/components/ui";
 import { TICKET_STATUS, categoryLabel } from "@/lib/support";
 import { formatDate } from "@/lib/format";
-import { brand, fonts, radius, space, type, useColors } from "@/lib/theme";
+import { fonts, radius, space, type, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
 export default function Ticket() {
@@ -67,7 +67,7 @@ export default function Ticket() {
                       styles.bubble,
                       m.isStaff
                         ? { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: 4 }
-                        : { backgroundColor: brand.orange, borderBottomRightRadius: 4 },
+                        : { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
                     ]}
                   >
                     {m.isStaff && <Text style={[type.caption, { color: colors.primaryInk, fontFamily: fonts.bold }]}>{m.authorName}</Text>}
@@ -105,7 +105,7 @@ export default function Ticket() {
               disabled={!reply.trim() || send.isPending}
               accessibilityRole="button"
               accessibilityLabel="Send reply"
-              style={[styles.send, { backgroundColor: reply.trim() ? brand.orange : colors.mutedBg }]}
+              style={[styles.send, { backgroundColor: reply.trim() ? colors.primary : colors.mutedBg }]}
             >
               {send.isPending ? <ActivityIndicator color="#FFFFFF" /> : <Feather name="send" size={18} color={reply.trim() ? "#FFFFFF" : colors.muted} />}
             </Pressable>

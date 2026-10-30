@@ -5,7 +5,7 @@ import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "r
 import Animated, { FadeIn, FadeOut, ZoomIn } from "react-native-reanimated";
 
 import type { Classroom } from "@/lib/useClassroom";
-import { brand, fonts, radius, space, type, useColors } from "@/lib/theme";
+import { fonts, radius, space, type, useColors } from "@/lib/theme";
 
 import { SlidesView } from "./SlidesView";
 import { Whiteboard } from "./Whiteboard";
@@ -22,15 +22,18 @@ export function ClassroomPanel({ room, displayName, snap, onSnap }: { room: Clas
   const [tab, setTab] = useState<Tab>("board");
   // Follow the teacher (web: InteractivePanel.followTeacher): her new slide, board stroke or
   // board grant opens that tab, big enough to read or draw on. Quizzes pop up on their own.
-  const [lastActivity, setLastActivity] = useState(room.teacherActivity?.at ?? 0);
   const activity = room.teacherActivity;
-  if (activity && activity.at !== lastActivity) {
-    setLastActivity(activity.at);
-    if (activity.what !== "quiz") {
-      setTab(activity.what);
-      if (snap === "peek" || activity.what === "slides" || room.canDraw) onSnap("full");
-    }
-  }
+  const lastActivity = useRef(activity?.at ?? 0);
+  useEffect(() => {
+    if (!activity || activity.at === lastActivity.current) return;
+    lastActivity.current = activity.at;
+    if (activity.what === "quiz") return;
+    // This follows a real-time teacher event. Applying it after commit avoids
+    // updating both this panel and its parent sheet during React's render pass.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTab(activity.what);
+    if (snap === "peek" || activity.what === "slides" || room.canDraw) onSnap("full");
+  }, [activity, onSnap, room.canDraw, snap]);
   function pickTab(t: Tab) {
     if (t === tab && snap !== "peek") { onSnap("peek"); return; }
     setTab(t);
@@ -60,12 +63,12 @@ export function ClassroomPanel({ room, displayName, snap, onSnap }: { room: Clas
               style={[styles.tab, active && snap !== "peek" && { backgroundColor: colors.primarySoft }]}>
               <Feather name={t.icon} size={16} color={active ? colors.primaryInk : colors.muted} />
               {active && snap !== "peek" && <Text style={[styles.tabText, { color: colors.primaryInk }]} numberOfLines={1}>{t.label}</Text>}
-              {!!t.badge && <View style={styles.badge}><Text style={styles.badgeText}>{t.badge > 9 ? "9+" : t.badge}</Text></View>}
+              {!!t.badge && <View style={[styles.badge, { backgroundColor: colors.primary }]}><Text style={styles.badgeText}>{t.badge > 9 ? "9+" : t.badge}</Text></View>}
             </Pressable>
           );
         })}
         <Pressable onPress={room.toggleHand} accessibilityRole="button" accessibilityLabel={room.handRaised ? "Lower hand" : "Raise hand"}
-          style={[styles.hand, room.handRaised ? { backgroundColor: brand.orange } : { backgroundColor: colors.mutedBg }]}>
+          style={[styles.hand, room.handRaised ? { backgroundColor: colors.primary } : { backgroundColor: colors.mutedBg }]}>
           <Text style={{ fontSize: 18 }}>✋</Text>
         </Pressable>
       </View>
@@ -107,7 +110,7 @@ function Chat({ room }: { room: Classroom }) {
         contentContainerStyle={{ gap: space.sm, paddingVertical: space.sm }}
         ListEmptyComponent={<Text style={[type.caption, { color: colors.muted, textAlign: "center", marginTop: space.xl }]}>Say hello to your class 👋</Text>}
         renderItem={({ item }) => (
-          <View style={[styles.msg, item.mine ? { alignSelf: "flex-end", backgroundColor: brand.orange } : { alignSelf: "flex-start", backgroundColor: colors.mutedBg }]}>
+          <View style={[styles.msg, item.mine ? { alignSelf: "flex-end", backgroundColor: colors.primary } : { alignSelf: "flex-start", backgroundColor: colors.mutedBg }]}>
             {!item.mine && <Text style={[styles.msgAuthor, { color: colors.primaryInk }]}>{item.author}</Text>}
             <Text style={[styles.msgText, { color: item.mine ? "#FFFFFF" : colors.text }]}>{item.text}</Text>
           </View>
@@ -125,7 +128,8 @@ function Chat({ room }: { room: Classroom }) {
           accessibilityLabel="Chat message"
         />
         <Pressable onPress={send} disabled={!text.trim()} accessibilityRole="button" accessibilityLabel="Send"
-          style={[styles.send, { backgroundColor: text.trim() ? brand.orange : colors.mutedBg }]}>
+          accessibilityState={{ disabled: !text.trim() }}
+          style={[styles.send, { backgroundColor: text.trim() ? colors.primary : colors.mutedBg }]}>
           <Feather name="send" size={17} color={text.trim() ? "#FFFFFF" : colors.muted} />
         </Pressable>
       </View>
@@ -168,7 +172,7 @@ function People({ room }: { room: Classroom }) {
       ListEmptyComponent={<Text style={[type.caption, { color: colors.muted, textAlign: "center", marginTop: space.xl }]}>Waiting for the class to join…</Text>}
       renderItem={({ item }) => (
         <View style={[styles.person, { borderColor: colors.border }]}>
-          <View style={[styles.avatar, { backgroundColor: item.role === "teacher" ? brand.orange : colors.mutedBg }]}>
+          <View style={[styles.avatar, { backgroundColor: item.role === "teacher" ? colors.primary : colors.mutedBg }]}>
             <Text style={[styles.avatarText, { color: item.role === "teacher" ? "#FFFFFF" : colors.textSoft }]}>{item.name.trim().charAt(0).toUpperCase()}</Text>
           </View>
           <Text style={[styles.starName, { color: colors.text }]} numberOfLines={1}>{item.name}</Text>
@@ -228,6 +232,7 @@ export function QuizOverlay({ room }: { room: Classroom }) {
 
 /** Teacher's "Celebrate" (hub Celebrate): a short confetti-style burst over the class. */
 export function CelebrationOverlay({ room }: { room: Classroom }) {
+  const colors = useColors();
   const { celebration, dismissCelebration } = room;
   useEffect(() => {
     if (!celebration) return;
@@ -238,7 +243,7 @@ export function CelebrationOverlay({ room }: { room: Classroom }) {
   return (
     <Animated.View entering={FadeIn.duration(250)} exiting={FadeOut.duration(400)} style={styles.celebrate} pointerEvents="none">
       <Animated.View entering={ZoomIn.springify()}>
-        <LinearGradient colors={[brand.orangeFrom, brand.orangeTo]} style={styles.celebrateCard}>
+        <LinearGradient colors={[colors.primary, colors.accent]} style={styles.celebrateCard}>
           <Text style={styles.celebrateEmoji}>🎉 ⭐ 🎉</Text>
           <Text style={styles.celebrateText}>{celebration.message || "Great job, class!"}</Text>
         </LinearGradient>
@@ -254,7 +259,7 @@ const styles = StyleSheet.create({
   tabBar: { flexDirection: "row", alignItems: "center", gap: 4 },
   tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingVertical: 9, borderRadius: radius.pill },
   tabText: { fontFamily: fonts.semibold, fontSize: 12 },
-  badge: { minWidth: 16, height: 16, borderRadius: 8, backgroundColor: brand.orange, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
+  badge: { minWidth: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
   badgeText: { fontFamily: fonts.bold, fontSize: 9, color: "#FFFFFF" },
   hand: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", marginLeft: 2 },
   syncNote: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.md, paddingHorizontal: 10, paddingVertical: 6, marginTop: space.sm },
