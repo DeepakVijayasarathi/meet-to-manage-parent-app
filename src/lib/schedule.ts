@@ -17,6 +17,23 @@ export function isJoinable(s: ApiClassSession, opensMinutesBefore: number = DEFA
   return t >= start - opensMinutesBefore * 60_000 && t < start + JOIN_GRACE_MINUTES * 60_000;
 }
 
+/** A scheduled class whose Join window hasn't opened yet; the UI shows a locked button instead of hiding Join. */
+export function joinOpensAt(s: ApiClassSession, opensMinutesBefore: number = DEFAULT_JOIN_OPENS_MINUTES, now: Date = new Date()): Date | undefined {
+  if (s.status !== "Scheduled" && s.status !== "CarriedForward") return undefined;
+  const opens = new Date(new Date(s.scheduledStartAtUtc).getTime() - opensMinutesBefore * 60_000);
+  return opens.getTime() > now.getTime() ? opens : undefined;
+}
+
+/** "Join opens in 4 min", "Join opens in 2 h 5 min", "Join opens at 4:50 PM" (tomorrow or later: with the day). */
+export function joinOpensLabel(opens: Date, now: Date = new Date()): string {
+  const mins = Math.max(1, Math.ceil((opens.getTime() - now.getTime()) / 60_000));
+  if (mins < 60) return `Join opens in ${mins} min`;
+  const h = Math.floor(mins / 60);
+  if (h < 12) return mins % 60 ? `Join opens in ${h} h ${mins % 60} min` : `Join opens in ${h} h`;
+  const time = opens.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return localDayKey(opens) === localDayKey(now) ? `Join opens at ${time}` : `Join opens ${opens.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}, ${time}`;
+}
+
 /** The class is happening right now (between scheduled start and end, or marked in progress). */
 export function isLive(s: ApiClassSession, now: Date = new Date()): boolean {
   if (s.status === "InProgress") return true;

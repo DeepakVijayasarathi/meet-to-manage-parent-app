@@ -5,12 +5,18 @@ import type { ApiJitsiJoin } from "@/api/types";
  * call — no pre-join or "get the app" page, and only the controls a child needs (the app's
  * own panel covers chat, raise hand and participants, so Jitsi's copies are hidden).
  */
-export function roomUrl(join: Pick<ApiJitsiJoin, "domain" | "room" | "token">, displayName: string): string {
+export interface RoomJoinOptions {
+  /** Start with the microphone / camera off, as chosen on the pre-join screen. */
+  audioMuted?: boolean;
+  videoMuted?: boolean;
+}
+
+export function roomUrl(join: Pick<ApiJitsiJoin, "domain" | "room" | "token">, displayName: string, opts: RoomJoinOptions = {}): string {
   const config: Record<string, unknown> = {
     "config.prejoinConfig.enabled": false,
     "config.disableDeepLinking": true,
-    "config.startWithAudioMuted": false,
-    "config.startWithVideoMuted": false,
+    "config.startWithAudioMuted": !!opts.audioMuted,
+    "config.startWithVideoMuted": !!opts.videoMuted,
     "config.toolbarButtons": ["microphone", "camera", "tileview", "hangup"],
     "config.hideConferenceSubject": true,
     "config.hideConferenceTimer": true,

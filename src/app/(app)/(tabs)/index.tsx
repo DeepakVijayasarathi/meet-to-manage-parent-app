@@ -13,7 +13,8 @@ import { getChildren, getDashboard, getPendingFeedback, getSchedule } from "@/ap
 import type { ApiClassSession, ApiParentChildSummary } from "@/api/types";
 import { Appear, Badge, Button, Card, EmptyState, IconTile, Logo, SectionHeader, Skeleton, StatCard, type IconName, type Tone } from "@/components/ui";
 import { SessionRow, dayLabel } from "@/components/sessions";
-import { belongsToChild, classTitle, countdownLabel, isJoinable, isLive, joinDisplayName, nextClass } from "@/lib/schedule";
+import { belongsToChild, classTitle, countdownLabel, isJoinable, isLive, joinDisplayName, joinOpensAt, joinOpensLabel, nextClass } from "@/lib/schedule";
+import { useNow } from "@/lib/useNow";
 import { brand, fonts, layout, radius, space, type, useColors, type Colors } from "@/lib/theme";
 import { useTabBarSpace } from "@/lib/tabBar";
 import { useAppConfig } from "@/state/appConfig";
@@ -309,6 +310,7 @@ export default function Dashboard() {
 
 function UpNext({ session, colors, displayName }: { session?: ApiClassSession; colors: Colors; displayName: string }) {
   const { config } = useAppConfig();
+  const now = useNow();
   const logoSource = config?.brand.logoUrl ? { uri: config.brand.logoUrl } : require("@/assets/images/mtm-logo.png");
   if (!session) {
     return (
@@ -317,15 +319,16 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
       </Card>
     );
   }
-  const live = isLive(session);
+  const live = isLive(session, now);
   const start = new Date(session.scheduledStartAtUtc);
   const minutes = Math.round((new Date(session.scheduledEndAtUtc).getTime() - start.getTime()) / 60_000);
   const startTime = start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   const endTime = new Date(session.scheduledEndAtUtc).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   const day = dayLabel(session);
 
-  const joinable = isJoinable(session, config?.joinOpensMinutesBefore);
-  const countdown = live ? "Live now" : countdownLabel(session);
+  const joinable = isJoinable(session, config?.joinOpensMinutesBefore, now);
+  const opensAt = joinOpensAt(session, config?.joinOpensMinutesBefore, now);
+  const countdown = live ? "Live now" : countdownLabel(session, now);
   const open = () => router.push({ pathname: "/class/[id]", params: { id: session.id } });
   const join = () => router.push({ pathname: "/live/[id]", params: { id: session.id, title: classTitle(session), name: displayName } });
   return (
@@ -390,6 +393,12 @@ function UpNext({ session, colors, displayName }: { session?: ApiClassSession; c
           <Feather name="video" size={18} color={colors.primary} />
           <Text style={[styles.joinText, { color: colors.primary }]}>{live ? "Join class now" : "Join class"}</Text>
         </Pressable>
+      )}
+      {opensAt && (
+        <View accessibilityRole="button" accessibilityState={{ disabled: true }} accessibilityLabel={joinOpensLabel(opensAt, now)} style={[styles.joinButton, { opacity: 0.55 }]}>
+          <Feather name="lock" size={16} color={colors.primary} />
+          <Text style={[styles.joinText, { color: colors.primary }]}>{joinOpensLabel(opensAt, now)}</Text>
+        </View>
       )}
     </LinearGradient>
   );

@@ -15,6 +15,9 @@ export interface JitsiRoomProps {
   muteRequestAt?: number;
   /** The participant the teacher pinned (hub Pinned), or null to unpin. */
   pinnedId?: string | null;
+  /** Mic / camera choices from the pre-join screen. */
+  audioMuted?: boolean;
+  videoMuted?: boolean;
 }
 
 /**
@@ -23,7 +26,7 @@ export interface JitsiRoomProps {
  * Expo SDK 56 ("Cannot read property 'JitsiMeeting' of undefined"), so the native SDK is not
  * used until a release matching this React Native version is verified on devices.
  */
-export function JitsiRoom({ join, displayName, onReady, muteRequestAt = 0, pinnedId }: JitsiRoomProps) {
+export function JitsiRoom({ join, displayName, onReady, muteRequestAt = 0, pinnedId, audioMuted, videoMuted }: JitsiRoomProps) {
   const web = useRef<ComponentRef<typeof WebView>>(null);
 
   // Teacher's "Mute everyone": mute this child's microphone in the Jitsi page itself.
@@ -45,7 +48,7 @@ export function JitsiRoom({ join, displayName, onReady, muteRequestAt = 0, pinne
   return (
     <WebView
       ref={web}
-      source={{ uri: roomUrl(join, displayName) }}
+      source={{ uri: roomUrl(join, displayName, { audioMuted, videoMuted }) }}
       style={styles.fill}
       originWhitelist={["https://*"]}
       javaScriptEnabled

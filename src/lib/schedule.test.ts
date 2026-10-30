@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { belongsToChild, countdownLabel, groupByDay, isJoinable, isLive, monthGrid, nextClass, reminderPlan, sessionsByDay } from "./schedule.ts";
+import { belongsToChild, countdownLabel, groupByDay, isJoinable, isLive, joinOpensAt, joinOpensLabel, monthGrid, nextClass, reminderPlan, sessionsByDay } from "./schedule.ts";
 import type { ApiClassSession } from "../api/types";
 
 test("monthGrid: whole Monday-first weeks covering the month", () => {
@@ -30,6 +30,15 @@ test("join opens the configured minutes before the start and closes 3 hours afte
   assert.equal(isJoinable(session({ status: "Cancelled" }), 10, now), false);
   assert.equal(isJoinable(session({ status: "Rescheduled" }), 10, now), false);
   assert.equal(isJoinable(session({ status: "InProgress", scheduledStartAtUtc: at(-10) }), 10, now), true);
+});
+
+test("a locked Join is shown only for a scheduled class whose window has not opened", () => {
+  const opens = joinOpensAt(session({ scheduledStartAtUtc: at(30) }), 10, now);
+  assert.equal(opens?.getTime(), new Date(at(20)).getTime());
+  assert.equal(joinOpensLabel(opens!, now), "Join opens in 20 min");
+  assert.equal(joinOpensLabel(new Date(at(125)), now), "Join opens in 2 h 5 min");
+  assert.equal(joinOpensAt(session({ scheduledStartAtUtc: at(5) }), 10, now), undefined);
+  assert.equal(joinOpensAt(session({ status: "Cancelled", scheduledStartAtUtc: at(30) }), 10, now), undefined);
 });
 
 test("live means between start and end, or marked in progress", () => {

@@ -11,7 +11,8 @@ import { SESSION_STATUS } from "@/components/sessions";
 import { Badge, Button, Card, Divider, EmptyState, ListRow, Screen, Skeleton } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { useChildren, useScheduleWindow } from "@/lib/queries";
-import { CANCEL_CUTOFF_MINUTES, canParentCancel, classTitle, countdownLabel, isJoinable, isLive, joinDisplayName } from "@/lib/schedule";
+import { CANCEL_CUTOFF_MINUTES, canParentCancel, classTitle, countdownLabel, isJoinable, isLive, joinDisplayName, joinOpensAt, joinOpensLabel } from "@/lib/schedule";
+import { useNow } from "@/lib/useNow";
 import { brand, fonts, radius, space, type, useColors } from "@/lib/theme";
 import { useAppConfig } from "@/state/appConfig";
 import { useRequiredSession } from "@/state/session";
@@ -36,11 +37,14 @@ export default function ClassDetails() {
     },
   });
 
+  const now = useNow();
+
   if (schedule.isPending) return <Screen><Skeleton height={190} style={{ borderRadius: radius.xl }} /><Skeleton height={220} /></Screen>;
   if (!cls) return <Screen><Card><EmptyState icon="calendar" title="Class not found" description="It may have been moved or removed. Pull to refresh your schedule." /></Card></Screen>;
 
-  const live = isLive(cls);
-  const joinable = isJoinable(cls, config?.joinOpensMinutesBefore);
+  const live = isLive(cls, now);
+  const joinable = isJoinable(cls, config?.joinOpensMinutesBefore, now);
+  const opensAt = joinOpensAt(cls, config?.joinOpensMinutesBefore, now);
   const start = new Date(cls.scheduledStartAtUtc);
   const end = new Date(cls.scheduledEndAtUtc);
   const minutes = Math.round((end.getTime() - start.getTime()) / 60_000);
@@ -74,6 +78,7 @@ export default function ClassDetails() {
         {joinable && (
           <Button label={live ? "Join class now" : "Join class"} icon="video" variant="secondary" onPress={join} style={{ marginTop: space.md }} />
         )}
+        {opensAt && <Button label={joinOpensLabel(opensAt, now)} icon="lock" variant="secondary" disabled style={{ marginTop: space.md }} />}
       </LinearGradient>
 
       <Card padded={false}>
