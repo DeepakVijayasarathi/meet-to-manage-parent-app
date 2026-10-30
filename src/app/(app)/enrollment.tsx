@@ -1,7 +1,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { useMemo, useRef, useState, type ComponentRef } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -46,11 +46,13 @@ export default function Enrollment() {
   const slotsPerDay = form.batchType === "group" ? GROUP_SLOTS_PER_DAY : 1;
   const times = useMemo(() => timeOptionsFor(form.batchType, zone), [form.batchType, zone]);
 
-  // Prefill blank fields once, when the account and children have loaded: the child's
-  // name and the parent's own contact details (set during render, not in an effect).
+  // Prefill blank fields once after account and child data arrives. Keeping this
+  // outside the render pass avoids a discarded frame on slower Android devices.
   const [prefilled, setPrefilled] = useState(false);
-  if (!prefilled && !account.isPending && !children.isPending) {
+  useEffect(() => {
+    if (prefilled || account.isPending || children.isPending) return;
     const a = account.data;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPrefilled(true);
     setForm((f) => ({
       ...f,
@@ -59,7 +61,7 @@ export default function Enrollment() {
       parentPhone: f.parentPhone || a?.phone || "",
       parentEmail: f.parentEmail || realEmail(a?.email),
     }));
-  }
+  }, [account.data, account.isPending, children.isPending, existing, prefilled]);
 
   const submit = useMutation({
     mutationFn: () => submitEnrollment(session.token, toAnswers(form, zone), existing?.id),

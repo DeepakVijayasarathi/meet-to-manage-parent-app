@@ -15,7 +15,7 @@ import { JitsiRoom } from "@/components/JitsiRoom";
 import { useKeyboardHeight } from "@/components/keyboard";
 import { useClassroom } from "@/lib/useClassroom";
 import { Button } from "@/components/ui";
-import { brand, fonts, radius, space } from "@/lib/theme";
+import { fonts, radius, space, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
 type Permission = "checking" | "granted" | "denied";
@@ -25,6 +25,7 @@ type Permission = "checking" | "granted" | "denied";
  * signed join token, rendered by the Jitsi Meet React Native SDK (see JitsiRoom).
  */
 export default function LiveClass() {
+  const colors = useColors();
   const insets = useSafeAreaInsets();
   const session = useRequiredSession();
   const { id, title, name } = useLocalSearchParams<{ id: string; title?: string; name?: string }>();
@@ -51,7 +52,7 @@ export default function LiveClass() {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen options={{ headerShown: false, gestureEnabled: false, animation: "fade_from_bottom" }} />
 
       {join.data && (
@@ -59,7 +60,7 @@ export default function LiveClass() {
       )}
 
       {(!join.data || !loaded) && (
-        <View style={[StyleSheet.absoluteFill, styles.center]}>
+        <View style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: colors.background }]}>
           {permission === "denied" ? (
             <Message
               icon="mic-off"
@@ -76,9 +77,9 @@ export default function LiveClass() {
             />
           ) : (
             <>
-              <View style={styles.pulse}><ActivityIndicator size="large" color={brand.orangeFrom} /></View>
-              <Text style={styles.title}>{title || "Joining class"}</Text>
-              <Text style={styles.body}>Connecting you to the classroom…</Text>
+              <View style={[styles.pulse, { backgroundColor: colors.primarySoft }]}><ActivityIndicator size="large" color={colors.primary} /></View>
+              <Text style={[styles.title, { color: colors.text }]}>{title || "Joining class"}</Text>
+              <Text style={[styles.body, { color: colors.muted }]}>Connecting you to the classroom…</Text>
             </>
           )}
         </View>
@@ -136,30 +137,31 @@ function LiveLayout({ join, token, displayName, subject, onReady }: {
 }
 
 function Message({ icon, title, body, action }: { icon: "mic-off" | "alert-circle"; title: string; body: string; action: React.ReactNode }) {
+  const colors = useColors();
   return (
     <View style={styles.message}>
-      <View style={styles.messageIcon}><Feather name={icon} size={26} color={brand.orangeFrom} /></View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.body}>{body}</Text>
+      <View style={[styles.messageIcon, { backgroundColor: colors.primarySoft }]}><Feather name={icon} size={26} color={colors.primary} /></View>
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.body, { color: colors.muted }]}>{body}</Text>
       <View style={{ alignSelf: "stretch", marginTop: space.md }}>{action}</View>
       <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to the app" style={{ padding: space.md }}>
-        <Text style={[styles.body, { color: brand.orangeTo, fontFamily: fonts.semibold }]}>Back to the app</Text>
+        <Text style={[styles.body, { color: colors.primaryInk, fontFamily: fonts.semibold }]}>Back to the app</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF7F0" },
+  container: { flex: 1 },
   live: { flex: 1, backgroundColor: "#0B0D11" },
   video: { flex: 1, backgroundColor: "#0B0D11" },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0 },
-  center: { alignItems: "center", justifyContent: "center", padding: space.xxl, gap: space.sm, backgroundColor: "#FFF7F0" },
-  pulse: { width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(247,147,30,0.16)", marginBottom: space.md },
-  title: { fontFamily: fonts.bold, fontSize: 20, color: brand.charcoal, textAlign: "center" },
-  body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, color: "#6B7280", textAlign: "center" },
+  center: { alignItems: "center", justifyContent: "center", padding: space.xxl, gap: space.sm },
+  pulse: { width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center", marginBottom: space.md },
+  title: { fontFamily: fonts.bold, fontSize: 20, textAlign: "center" },
+  body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, textAlign: "center" },
   message: { alignItems: "center", gap: space.sm, maxWidth: 360, width: "100%" },
-  messageIcon: { width: 64, height: 64, borderRadius: radius.xl, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(247,147,30,0.16)", marginBottom: space.sm },
+  messageIcon: { width: 64, height: 64, borderRadius: radius.xl, alignItems: "center", justifyContent: "center", marginBottom: space.sm },
   topBar: { position: "absolute", left: space.lg, right: space.lg, flexDirection: "row", justifyContent: "flex-end" },
   leave: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#DC2626", borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8 },
   leaveText: { fontFamily: fonts.bold, fontSize: 14, color: "#FFFFFF" },

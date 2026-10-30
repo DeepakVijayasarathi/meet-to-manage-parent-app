@@ -9,7 +9,7 @@ import type { ApiClassSession, ApiParentChild } from "@/api/types";
 import { SessionRow } from "@/components/sessions";
 import { Card, Divider, EmptyState, ErrorCard } from "@/components/ui";
 import { belongsToChild, localDayKey, monthGrid, sessionsByDay } from "@/lib/schedule";
-import { brand, fonts, space, type, useColors, type Colors } from "@/lib/theme";
+import { fonts, space, type, useColors, type Colors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -19,7 +19,7 @@ function dotColor(s: ApiClassSession, colors: Colors): string {
   if (s.status === "Cancelled") return colors.danger;
   if (s.status === "Completed") return colors.success;
   if (s.type === "Demo") return colors.warning;
-  return brand.orange;
+  return colors.primary;
 }
 
 /** Month calendar of the family's classes; tapping a day lists its classes underneath. */
@@ -90,7 +90,7 @@ export function ClassCalendar({ childId, family }: { childId: string; family: Ap
                   accessibilityState={{ selected: isSel }}
                   style={styles.cell}
                 >
-                  <View style={[styles.dayCircle, isSel && { backgroundColor: brand.orange }, !isSel && isToday && { borderWidth: 1.5, borderColor: brand.orange }]}>
+                  <View style={[styles.dayCircle, isSel && { backgroundColor: colors.primary }, !isSel && isToday && { borderWidth: 1.5, borderColor: colors.primary }]}>
                     <Text style={[styles.dayNum, { color: isSel ? "#FFFFFF" : day.inMonth ? colors.text : colors.border }]}>{day.date.getDate()}</Text>
                   </View>
                   <View style={styles.dots}>
@@ -103,7 +103,7 @@ export function ClassCalendar({ childId, family }: { childId: string; family: Ap
         ))}
 
         <View style={styles.legend}>
-          {[["Upcoming", brand.orange], ["Completed", colors.success], ["Demo", colors.warning], ["Cancelled", colors.danger]].map(([label, c]) => (
+          {[["Upcoming", colors.primary], ["Completed", colors.success], ["Demo", colors.warning], ["Cancelled", colors.danger]].map(([label, c]) => (
             <View key={label} style={styles.legendItem}>
               <View style={[styles.dot, { backgroundColor: c }]} />
               <Text style={[type.caption, { color: colors.muted }]}>{label}</Text>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row" },
   weekday: { flex: 1, textAlign: "center", fontFamily: fonts.semibold, fontSize: 11, letterSpacing: 0.5 },
   cell: { flex: 1, alignItems: "center", paddingVertical: 3, gap: 3 },
-  dayCircle: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  dayCircle: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
   dayNum: { fontFamily: fonts.semibold, fontSize: 14 },
   dots: { flexDirection: "row", gap: 3, height: 6 },
   dot: { width: 6, height: 6, borderRadius: 3 },

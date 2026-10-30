@@ -8,7 +8,7 @@ import {
   type BoardOp, type BoardState, type Point, type Stroke, type ToolId,
 } from "@/lib/board";
 import type { ApiWhiteboardActivity } from "@/api/classroom";
-import { brand, fonts, radius, space, useColors } from "@/lib/theme";
+import { fonts, radius, space, useColors } from "@/lib/theme";
 
 import { WhiteboardActivity } from "./WhiteboardActivity";
 
@@ -150,7 +150,7 @@ export function Whiteboard({ board, canDraw, onLocalOp, onInteraction, activitie
               const active = t.id === tool;
               return (
                 <Pressable key={t.id} onPress={() => setTool(t.id)} accessibilityRole="button" accessibilityLabel={t.label} accessibilityState={{ selected: active }}
-                  style={[styles.toolBtn, active && { backgroundColor: brand.orange }]}>
+                  style={[styles.toolBtn, active && { backgroundColor: colors.primary }]}>
                   <Feather name={t.icon} size={17} color={active ? "#FFFFFF" : colors.textSoft} />
                 </Pressable>
               );
@@ -158,7 +158,7 @@ export function Whiteboard({ board, canDraw, onLocalOp, onInteraction, activitie
             <View style={[styles.sep, { backgroundColor: colors.border }]} />
             {SWATCHES.map((c) => (
               <Pressable key={c} onPress={() => setColor(c)} accessibilityRole="button" accessibilityLabel={`Colour ${c}`} accessibilityState={{ selected: c === color }}
-                style={[styles.swatch, { backgroundColor: c, borderColor: c === color ? brand.orange : colors.border, borderWidth: c === color ? 3 : 1 }]} />
+                style={[styles.swatch, { backgroundColor: c, borderColor: c === color ? colors.primary : colors.border, borderWidth: c === color ? 3 : 1 }]} />
             ))}
             <View style={[styles.sep, { backgroundColor: colors.border }]} />
             {WIDTHS.map((w) => (
@@ -198,7 +198,7 @@ export function Whiteboard({ board, canDraw, onLocalOp, onInteraction, activitie
             multiline={textDraft.sticky}
             placeholder={textDraft.sticky ? "Note…" : "Type…"}
             style={[styles.textInput, {
-              left: textDraft.at.x - offset.x, top: textDraft.at.y - offset.y,
+              left: textDraft.at.x - offset.x, top: textDraft.at.y - offset.y, borderColor: colors.primary,
               backgroundColor: textDraft.sticky ? STICKY_DEFAULT : "rgba(255,255,255,0.95)",
               color: textDraft.sticky ? "#0F172A" : color, fontSize: textDraft.sticky ? 13 : textFontPx(width),
             }]}
@@ -218,7 +218,7 @@ export function Whiteboard({ board, canDraw, onLocalOp, onInteraction, activitie
 
       <View style={styles.pager}>
         <Pressable onPress={() => onLocalOp({ kind: "activity", open: !board.activityOpen })} accessibilityRole="button" accessibilityLabel="Activities"
-          style={[styles.activityBtn, { backgroundColor: board.activityOpen ? brand.orange : colors.primarySoft }]}>
+          style={[styles.activityBtn, { backgroundColor: board.activityOpen ? colors.primary : colors.primarySoft }]}>
           <Feather name="star" size={14} color={board.activityOpen ? "#FFFFFF" : colors.primaryInk} />
           <Text style={[styles.activityText, { color: board.activityOpen ? "#FFFFFF" : colors.primaryInk }]}>Activities</Text>
         </Pressable>
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   paper: { flex: 1, backgroundColor: PAPER, borderRadius: radius.lg, borderWidth: 1, overflow: "hidden" },
   viewOnly: { position: "absolute", top: 10, left: 10, flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.9)", borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 },
   viewOnlyText: { fontFamily: fonts.semibold, fontSize: 11, color: "#6B7280" },
-  textInput: { position: "absolute", minWidth: 120, maxWidth: 220, padding: 8, borderRadius: 8, borderWidth: 1, borderColor: brand.orange, fontFamily: fonts.semibold },
+  textInput: { position: "absolute", minWidth: 120, maxWidth: 220, padding: 8, borderRadius: 8, borderWidth: 1, fontFamily: fonts.semibold },
   pager: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.sm },
   activityBtn: { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
   activityText: { fontFamily: fonts.semibold, fontSize: 12 },

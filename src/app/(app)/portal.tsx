@@ -5,7 +5,7 @@ import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "r
 import { WebView, type WebViewNavigation } from "react-native-webview";
 
 import { Button } from "@/components/ui";
-import { brand, fonts, space, type, useColors } from "@/lib/theme";
+import { fonts, space, type, useColors } from "@/lib/theme";
 import { useAppConfig } from "@/state/appConfig";
 import { useRequiredSession } from "@/state/session";
 
@@ -114,7 +114,7 @@ var e=${JSON.stringify(entries)};for(var k in e)localStorage.setItem(k,e[k]);}ca
       )}
       {loading && !failed && !!webOrigin && (
         <View style={[styles.loading, { backgroundColor: colors.background }]} pointerEvents="none">
-          <ActivityIndicator color={brand.orange} />
+          <ActivityIndicator color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.muted }]}>Opening securely…</Text>
         </View>
       )}

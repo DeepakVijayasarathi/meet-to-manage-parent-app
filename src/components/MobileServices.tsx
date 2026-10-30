@@ -13,8 +13,9 @@ import { BIOMETRIC_LOCK_KEY, CLASS_REMINDERS_KEY, readFlag, subscribeFlag } from
 import { reportAppHeartbeat } from "@/lib/appMonitoring";
 import { classTitle, reminderPlan } from "@/lib/schedule";
 import { captureError, track } from "@/lib/telemetry";
-import { fonts, space } from "@/lib/theme";
+import { fonts, space, useColors } from "@/lib/theme";
 import { useRequiredSession, useSession } from "@/state/session";
+import { useAppConfig } from "@/state/appConfig";
 
 const REMINDER_LEAD_MINUTES = 10;
 
@@ -28,7 +29,21 @@ export function OfflineBanner() {
   return <View style={styles.offline} accessibilityRole="alert"><Text style={styles.offlineText}>You&apos;re offline. Showing saved information.</Text></View>;
 }
 
+/** Keeps configuration failures visible: otherwise the app can look incorrectly unbranded
+ * or expose default navigation until the tenant settings are fetched successfully. */
+export function ConfigSyncBanner() {
+  const { error, retry } = useAppConfig();
+  if (!error) return null;
+  return <View style={styles.configWarning} accessibilityRole="alert">
+    <Text style={styles.configWarningText} numberOfLines={2}>Academy settings couldn&apos;t sync. Some options may be outdated.</Text>
+    <Pressable onPress={retry} accessibilityRole="button" accessibilityLabel="Retry academy settings sync" style={styles.configRetry}>
+      <Text style={styles.configRetryText}>Retry</Text>
+    </Pressable>
+  </View>;
+}
+
 export function BiometricGate() {
+  const colors = useColors();
   const { signOut } = useSession();
   const [locked, setLocked] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -71,12 +86,12 @@ export function BiometricGate() {
 
   if (checking || !locked) return null;
   return (
-    <View style={styles.lock} accessibilityViewIsModal>
+    <View style={[styles.lock, { backgroundColor: colors.background }]} accessibilityViewIsModal>
       <Logo size={72} />
-      <Text style={styles.lockTitle}>App locked</Text>
-      <Text style={styles.lockBody}>Use your fingerprint or face to continue.</Text>
+      <Text style={[styles.lockTitle, { color: colors.text }]}>App locked</Text>
+      <Text style={[styles.lockBody, { color: colors.muted }]}>Use your fingerprint or face to continue.</Text>
       <Button label="Unlock" icon="unlock" onPress={() => void unlock()} />
-      <Pressable onPress={() => signOut()} accessibilityRole="button"><Text style={styles.signOut}>Sign out instead</Text></Pressable>
+      <Pressable onPress={() => signOut()} accessibilityRole="button"><Text style={[styles.signOut, { color: colors.danger }]}>Sign out instead</Text></Pressable>
     </View>
   );
 }
@@ -177,8 +192,12 @@ export function reconnectNow() { void NetInfo.refresh(); }
 const styles = StyleSheet.create({
   offline: { backgroundColor: "#92400E", paddingHorizontal: space.lg, paddingVertical: 7, alignItems: "center", zIndex: 200 },
   offlineText: { color: "#FFFFFF", fontFamily: fonts.semibold, fontSize: 12 },
-  lock: { position: "absolute", inset: 0, zIndex: 300, elevation: 300, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", gap: space.lg, padding: space.xxl },
-  lockTitle: { fontFamily: fonts.bold, fontSize: 24, color: "#181A1F" },
-  lockBody: { fontFamily: fonts.regular, fontSize: 15, color: "#667085", textAlign: "center" },
-  signOut: { fontFamily: fonts.semibold, fontSize: 14, color: "#B42318", padding: space.md },
+  configWarning: { flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: "#FEF3C7", paddingHorizontal: space.lg, paddingVertical: 7, zIndex: 199 },
+  configWarningText: { flex: 1, color: "#78350F", fontFamily: fonts.medium, fontSize: 12 },
+  configRetry: { minHeight: 32, justifyContent: "center", paddingHorizontal: space.sm },
+  configRetryText: { color: "#92400E", fontFamily: fonts.bold, fontSize: 12 },
+  lock: { position: "absolute", inset: 0, zIndex: 300, elevation: 300, alignItems: "center", justifyContent: "center", gap: space.lg, padding: space.xxl },
+  lockTitle: { fontFamily: fonts.bold, fontSize: 24 },
+  lockBody: { fontFamily: fonts.regular, fontSize: 15, textAlign: "center" },
+  signOut: { fontFamily: fonts.semibold, fontSize: 14, padding: space.md },
 });

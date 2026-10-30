@@ -8,7 +8,7 @@ import { getResourcePlayUrl, getResources } from "@/api/parent";
 import type { ApiResource, ApiResourceType } from "@/api/types";
 import { Card, Chips, Divider, EmptyState, ErrorCard, ListRow, Screen, Skeleton, type IconName, type Tone } from "@/components/ui";
 import { formatBytes } from "@/lib/format";
-import { brand, space, useColors } from "@/lib/theme";
+import { space, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
 const KIND: Record<ApiResourceType, { label: string; icon: IconName; tone: Tone }> = {
@@ -28,7 +28,7 @@ export default function Resources() {
   const openResource = useMutation({
     mutationFn: async (r: ApiResource) => {
       const { url } = await getResourcePlayUrl(session.token, r.id);
-      await WebBrowser.openBrowserAsync(url, { toolbarColor: brand.charcoal, controlsColor: brand.orange });
+      await WebBrowser.openBrowserAsync(url, { toolbarColor: colors.card, controlsColor: colors.primary });
     },
     onMutate: () => setError(null),
     onError: (err) => setError(errorMessage(err, "Couldn't open this resource.")),
@@ -43,7 +43,7 @@ export default function Resources() {
       {kinds.length > 1 && (
         <Chips options={[{ value: "all" as const, label: "All" }, ...kinds.map((k) => ({ value: k, label: KIND[k].label }))]} value={kind} onChange={setKind} />
       )}
-      {error && <ErrorCard message={error} onRetry={() => setError(null)} />}
+      {error && <ErrorCard message={error} actionLabel="Dismiss" actionIcon="x" onRetry={() => setError(null)} />}
       {resources.isPending ? <View style={{ gap: space.md }}><Skeleton height={64} /><Skeleton height={64} /></View>
         : resources.isError ? <ErrorCard message={errorMessage(resources.error)} onRetry={() => resources.refetch()} />
         : shown.length === 0 ? (

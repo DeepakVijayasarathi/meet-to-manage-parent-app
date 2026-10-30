@@ -40,13 +40,14 @@ export function WhiteboardActivity({ activities, selection, onClose, onComplete 
   const [activeId, setActiveId] = useState(activities[0]?.id);
   const [query, setQuery] = useState("");
 
-  // Follow the teacher's choice whenever it changes (web: the selection effect).
-  const [lastSelection, setLastSelection] = useState(selection);
-  if (selection !== lastSelection) {
-    setLastSelection(selection);
-    setSource(sel.source ?? "class");
-    setPlugin(sel.pluginId ? LEARNING_PLUGINS.find((p) => p.id === sel.pluginId) ?? null : null);
-  }
+  // Follow the teacher's choice after commit. Updating state while rendering
+  // caused an avoidable second render and visible sheet jumps on slower phones.
+  useEffect(() => {
+    const next = selection as { source?: Source; pluginId?: string };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSource(next.source ?? "class");
+    setPlugin(next.pluginId ? LEARNING_PLUGINS.find((p) => p.id === next.pluginId) ?? null : null);
+  }, [selection]);
   const active = activities.find((a) => a.id === activeId) ?? activities[0];
   const h5pUrl = sel.h5pUrl ? normalizeH5pUrl(sel.h5pUrl) : "";
   const plugins = useMemo(

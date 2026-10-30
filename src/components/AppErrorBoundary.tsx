@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Appearance, StyleSheet, Text, View } from "react-native";
 
 import { Button, Logo } from "@/components/ui";
 import { captureError } from "@/lib/telemetry";
@@ -18,11 +18,12 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
 
   render() {
     if (!this.state.failed) return this.props.children;
+    const dark = Appearance.getColorScheme() === "dark";
     return (
-      <View style={styles.root}>
+      <View style={[styles.root, { backgroundColor: dark ? "#0F1115" : "#FAFAF9" }]}>
         <Logo size={64} />
-        <Text style={styles.title}>The app hit a problem</Text>
-        <Text style={styles.body}>Your information is safe. Try loading the screen again.</Text>
+        <Text style={[styles.title, { color: dark ? "#F3F4F6" : "#20242C" }]}>The app hit a problem</Text>
+        <Text style={[styles.body, { color: dark ? "#9CA3AF" : "#6B7280" }]}>Your information is safe. Try loading the screen again.</Text>
         <Button label="Try again" icon="refresh-cw" onPress={() => this.setState({ failed: false })} />
       </View>
     );
@@ -30,7 +31,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, alignItems: "center", justifyContent: "center", gap: space.lg, padding: space.xxl, backgroundColor: "#FFFFFF" },
-  title: { fontFamily: fonts.bold, fontSize: 22, color: "#181A1F", textAlign: "center" },
-  body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, color: "#667085", textAlign: "center" },
+  root: { flex: 1, alignItems: "center", justifyContent: "center", gap: space.lg, padding: space.xxl },
+  title: { fontFamily: fonts.bold, fontSize: 22, textAlign: "center" },
+  body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, textAlign: "center" },
 });

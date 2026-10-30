@@ -2,7 +2,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { useState, type ReactNode } from "react";
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextInputProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { isoDate } from "@/lib/enrollment";
@@ -125,6 +125,7 @@ export function SelectField({ value, options, onChange, placeholder, title, disa
   disabled?: (v: string) => boolean; error?: boolean;
 }) {
   const colors = useColors();
+  const { height } = useWindowDimensions();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
   return (
@@ -139,7 +140,7 @@ export function SelectField({ value, options, onChange, placeholder, title, disa
         <Feather name="chevron-down" size={18} color={colors.muted} />
       </Pressable>
       <Sheet visible={open} onClose={() => setOpen(false)} title={title}>
-        <ScrollView style={{ maxHeight: 420 }}>
+        <ScrollView style={{ maxHeight: Math.min(420, height * 0.55) }} showsVerticalScrollIndicator={false}>
           {options.map((o) => {
             const active = o.value === value;
             const off = !active && disabled?.(o.value);
