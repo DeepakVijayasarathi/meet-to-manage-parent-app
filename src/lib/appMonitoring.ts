@@ -6,6 +6,7 @@ import { Platform } from "react-native";
 import { sendAppHeartbeat } from "@/api/parent";
 import { BIOMETRIC_LOCK_KEY, readFlag } from "@/lib/preferences";
 import { readItem, writeItem } from "@/lib/storage";
+import { captureError } from "@/lib/telemetry";
 
 const INSTALLATION_ID_KEY = "mtm.installation-id";
 const LAST_HEARTBEAT_KEY = "mtm.last-heartbeat";
@@ -25,8 +26,9 @@ async function devicePushToken(granted: boolean): Promise<string | null> {
   try {
     const { data } = await Notifications.getDevicePushTokenAsync();
     return typeof data === "string" ? data : null;
-  } catch {
+  } catch (error) {
     // No google-services.json in this build, or Play services unavailable: local reminders still work.
+    captureError(error, "push_token");
     return null;
   }
 }

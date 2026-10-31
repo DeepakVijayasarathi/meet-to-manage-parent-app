@@ -158,6 +158,11 @@ export function AppMonitoringController() {
   const session = useRequiredSession();
   useEffect(() => {
     const report = () => void reportAppHeartbeat(session.token).catch(() => undefined);
+    // Push needs the notification permission (a runtime prompt on Android 13+). Ask once, then register the device
+    // straight away instead of waiting for the next throttled heartbeat.
+    void ensurePushPermission()
+      .then((granted) => { if (granted) void reportAppHeartbeat(session.token, { force: true }).catch(() => undefined); })
+      .catch(() => undefined);
     report();
     const subscription = AppState.addEventListener("change", (state) => { if (state === "active") report(); });
     return () => subscription.remove();
@@ -172,6 +177,17 @@ export async function canUseBiometrics(): Promise<boolean> {
 export async function confirmBiometric(): Promise<boolean> {
   const result = await LocalAuthentication.authenticateAsync({ promptMessage: "Enable biometric lock" });
   return result.success;
+}
+
+/** Prompts for notification permission on first launch; never re-prompts once the user has answered. */
+async function ensurePushPermission(): Promise<boolean> {
+  if (Platform.OS === "web") return false;
+  // Android 13+ only shows the prompt once a notification channel exists.
+  if (Platform.OS === "android") await Notifications.setNotificationChannelAsync("default", { name: "Updates", importance: AndroidImportance.HIGH });
+  const current = await Notifications.getPermissionsAsync();
+  if (current.granted) return true;
+  if (!current.canAskAgain) return false;
+  return (await Notifications.requestPermissionsAsync()).granted;
 }
 
 export async function enableClassReminders(): Promise<boolean> {
