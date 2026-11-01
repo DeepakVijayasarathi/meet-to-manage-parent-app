@@ -30,7 +30,8 @@
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT"
       ],
-      "package": "cloud.meettomanage.parent"
+      "package": "cloud.meettomanage.parent",
+      "versionCode": 10
     },
     "web": {
       "output": "server",

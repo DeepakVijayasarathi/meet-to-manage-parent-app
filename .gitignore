@@ -45,3 +45,7 @@ example
 # Firebase client config (per project)
 google-services.json
 GoogleService-Info.plist
+
+# local Android build output and signing details
+/builds
+keystore.properties

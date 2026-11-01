@@ -2,13 +2,14 @@ import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useRef, useState, type ComponentRef } from "react";
+import { useEffect, useRef, useState, type ComponentRef } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { errorMessage } from "@/api/client";
-import { KeyboardSafe } from "@/components/keyboard";
+import { ApiError, errorMessage } from "@/api/client";
+import { KeyboardSafe, KeyboardSpacer } from "@/components/keyboard";
 import { Button } from "@/components/ui";
+import { authenticate, biometricLoginReady, clearBiometricCredentials, offerBiometricLogin, readBiometricCredentials, rememberIdentifier } from "@/lib/biometricLogin";
 import { brand, elevation, fonts, layout, radius, space, type, useColors } from "@/lib/theme";
 import { useSession } from "@/state/session";
 
@@ -23,7 +24,10 @@ export default function SignIn() {
   const [showPin, setShowPin] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fingerprint, setFingerprint] = useState(false);
   const pinRef = useRef<ComponentRef<typeof TextInput>>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  const pinGroupRef = useRef<ComponentRef<typeof View>>(null);
   const canSubmit = identifier.trim().length > 0 && /^\d{4}$/.test(pin);
 
   async function submit() {
@@ -33,6 +37,8 @@ export default function SignIn() {
     clearNotice();
     try {
       await signIn(identifier, pin);
+      await rememberIdentifier(identifier);
+      await offerBiometricLogin(identifier, pin);
       router.replace("/");
     } catch (err) {
       setError(errorMessage(err, "Sign in failed. Please check your email and PIN."));
@@ -41,6 +47,45 @@ export default function SignIn() {
     } finally {
       setBusy(false);
     }
+  }
+
+  /** Signs in with the saved email and PIN once the fingerprint / face check passes. */
+  async function fingerprintSignIn() {
+    if (busy) return;
+    const saved = await readBiometricCredentials();
+    if (!saved) { setFingerprint(false); return; }
+    if (!(await authenticate("Sign in to Meet to Manage"))) return;
+    setBusy(true);
+    setError(null);
+    clearNotice();
+    try {
+      await signIn(saved.identifier, saved.pin);
+      router.replace("/");
+    } catch (err) {
+      // A changed PIN or withdrawn access makes the saved details useless: drop them so the next PIN sign-in re-offers this.
+      if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
+        await clearBiometricCredentials();
+        setFingerprint(false);
+        setError("Your saved sign-in details are out of date. Please sign in with your PIN.");
+      } else setError(errorMessage(err, "Couldn't sign in. Check your connection and try again."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Offer the fingerprint straight away when it is turned on, so a returning family needn't type anything.
+  useEffect(() => {
+    void biometricLoginReady().then((ready) => {
+      setFingerprint(ready);
+      if (ready) void fingerprintSignIn();
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Scrolls the PIN field up so the keyboard never hides it. */
+  function scrollToPin() {
+    const inner = scrollRef.current?.getInnerViewRef();
+    if (!inner) return;
+    pinGroupRef.current?.measureLayout(inner, (_x, y) => scrollRef.current?.scrollTo({ y: Math.max(0, y - 140), animated: true }), () => undefined);
   }
 
   // Keep the wrapper style stable while Android transfers focus to the native input.
@@ -53,6 +98,7 @@ export default function SignIn() {
   return (
     <KeyboardSafe style={{ backgroundColor: colors.card }}>
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.flexGrow}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "none"}
@@ -111,7 +157,7 @@ export default function SignIn() {
               </View>
             </View>
 
-            <View style={styles.group}>
+            <View ref={pinGroupRef} collapsable={false} style={styles.group}>
               <Text style={[type.label, { color: colors.textSoft }]}>PIN</Text>
               <View style={field}>
                 <View style={[styles.fieldIcon, { backgroundColor: colors.card }]}>
@@ -132,6 +178,7 @@ export default function SignIn() {
                   maxLength={4}
                   returnKeyType="go"
                   onSubmitEditing={submit}
+                  onFocus={scrollToPin}
                   accessibilityLabel="PIN"
                 />
                 <Pressable onPress={() => setShowPin((v) => !v)} hitSlop={12} accessibilityRole="button" accessibilityLabel={showPin ? "Hide PIN" : "Show PIN"} style={styles.eye}>
@@ -155,6 +202,9 @@ export default function SignIn() {
             )}
 
             <Button label="Sign in" icon={busy ? undefined : "arrow-right"} onPress={submit} disabled={!canSubmit} loading={busy} />
+            {fingerprint && (
+              <Button label="Sign in with fingerprint" icon="unlock" variant="secondary" onPress={() => void fingerprintSignIn()} disabled={busy} />
+            )}
 
             <View style={[styles.help, { backgroundColor: colors.mutedBg }]}>
               <View style={[styles.helpIcon, { backgroundColor: colors.card }]}>
@@ -171,6 +221,7 @@ export default function SignIn() {
             <Text style={[type.caption, { color: colors.muted }]}>Secure sign-in · © {new Date().getFullYear()} Meet to Manage</Text>
           </View>
         </View>
+        <KeyboardSpacer onOpen={scrollToPin} />
       </ScrollView>
     </KeyboardSafe>
   );

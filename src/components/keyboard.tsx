@@ -43,3 +43,20 @@ export function useKeyboardHeight(): number {
 export function useKeyboardVisible(): boolean {
   return useKeyboardHeight() > 0;
 }
+
+/**
+ * Room for the Android keyboard at the end of a ScrollView. With edge-to-edge the system no longer resizes the
+ * window for the IME, so without this the keyboard covers the lower fields and the page can't scroll past them.
+ * `onOpen` runs once the space has been laid out (e.g. to scroll a field into view). It lives in its own component,
+ * so the keyboard opening re-renders only this spacer and never the inputs above it (which can blur a focused input).
+ * iOS needs nothing: KeyboardSafe already pads it.
+ */
+export function KeyboardSpacer({ onOpen }: { onOpen?: () => void }) {
+  const height = useKeyboardHeight();
+  useEffect(() => {
+    if (Platform.OS !== "android" || height === 0 || !onOpen) return;
+    const timer = setTimeout(onOpen, 120);
+    return () => clearTimeout(timer);
+  }, [height]); // eslint-disable-line react-hooks/exhaustive-deps
+  return Platform.OS === "android" ? <View style={{ height }} /> : null;
+}

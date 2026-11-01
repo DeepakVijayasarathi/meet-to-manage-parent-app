@@ -2,9 +2,12 @@ import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, type Href } from "expo-router";
 import { Fragment, useEffect, useState } from "react";
-import { Alert, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Modal, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
-import { Card, Divider, ListRow, Logo, Screen, type IconName, type Tone } from "@/components/ui";
+import { errorMessage } from "@/api/client";
+import { login } from "@/api/parent";
+import { Button, Card, Divider, ListRow, Logo, Screen, type IconName, type Tone } from "@/components/ui";
+import { disableBiometricLogin, enableBiometricLogin, readBiometricCredentials, readIdentifier } from "@/lib/biometricLogin";
 import { initials } from "@/lib/format";
 import { canUseBiometrics, confirmBiometric, disableClassReminders, enableClassReminders } from "@/components/MobileServices";
 import { BIOMETRIC_LOCK_KEY, CLASS_REMINDERS_KEY, readFlag, writeFlag } from "@/lib/preferences";
@@ -51,6 +54,10 @@ export default function More() {
   const [biometricLock, setBiometricLock] = useState(false);
   const [classReminders, setClassReminders] = useState(false);
   const [settingBusy, setSettingBusy] = useState(false);
+  // Fingerprint sign-in needs the PIN once, to keep it for later: asked here, checked with the server before saving.
+  const [pinPrompt, setPinPrompt] = useState<{ identifier: string } | null>(null);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
 
   useEffect(() => {
     void Promise.all([readFlag(BIOMETRIC_LOCK_KEY), readFlag(CLASS_REMINDERS_KEY)]).then(([bio, reminders]) => {
@@ -82,10 +89,38 @@ export default function More() {
         return;
       }
       if (enabled && !(await confirmBiometric())) return;
-      await writeFlag(BIOMETRIC_LOCK_KEY, enabled);
-      setBiometricLock(enabled);
-      track("setting_biometric_lock", { enabled });
+      if (!enabled) {
+        await disableBiometricLogin();
+        setBiometricLock(false);
+        track("setting_biometric_lock", { enabled });
+        return;
+      }
+      if (await readBiometricCredentials()) {
+        await writeFlag(BIOMETRIC_LOCK_KEY, true);
+        setBiometricLock(true);
+        track("setting_biometric_lock", { enabled });
+        return;
+      }
+      const identifier = await readIdentifier();
+      if (!identifier) {
+        Alert.alert("Sign in once more", "Sign out and sign in with your PIN, then choose \"Turn on\" when asked about fingerprint sign-in.");
+        return;
+      }
+      setPin(""); setPinError(null); setPinPrompt({ identifier });
     } finally { setSettingBusy(false); }
+  };
+
+  const confirmPin = async () => {
+    if (!pinPrompt || !/^\d{4}$/.test(pin)) return;
+    setSettingBusy(true); setPinError(null);
+    try {
+      await login(pinPrompt.identifier, pin);
+      await enableBiometricLogin(pinPrompt.identifier, pin);
+      setBiometricLock(true);
+      setPinPrompt(null);
+      track("setting_biometric_lock", { enabled: true });
+    } catch (err) { setPinError(errorMessage(err, "That PIN didn't work. Please try again.")); }
+    finally { setSettingBusy(false); }
   };
 
   const toggleReminders = async (enabled: boolean) => {
@@ -105,6 +140,25 @@ export default function More() {
 
   return (
     <Screen title="More">
+      <Modal visible={!!pinPrompt} transparent animationType="fade" onRequestClose={() => setPinPrompt(null)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[type.heading, { color: colors.text }]}>Turn on fingerprint sign-in</Text>
+            <Text style={[type.body, { color: colors.muted }]}>Enter your 4-digit PIN once. It is kept securely on this phone and only used after your fingerprint or face check.</Text>
+            <TextInput
+              style={[styles.pinInput, { color: colors.text, backgroundColor: colors.mutedBg }]}
+              value={pin} onChangeText={(v) => setPin(v.replace(/\D/g, "").slice(0, 4))}
+              secureTextEntry keyboardType="number-pad" maxLength={4} autoFocus placeholder="PIN" placeholderTextColor={colors.muted}
+              accessibilityLabel="PIN" onSubmitEditing={() => void confirmPin()}
+            />
+            {pinError && <Text style={[type.caption, { color: colors.danger }]}>{pinError}</Text>}
+            <Button label="Turn on" icon="check" onPress={() => void confirmPin()} disabled={!/^\d{4}$/.test(pin)} loading={settingBusy} />
+            <Pressable onPress={() => setPinPrompt(null)} accessibilityRole="button" style={{ alignItems: "center", padding: space.sm }}>
+              <Text style={[type.body, { color: colors.muted }]}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       <Card style={styles.profile}>
         <LinearGradient colors={[colors.primary, colors.accent]} style={styles.avatar}>
           <Text style={styles.avatarText}>{initials(session.userName)}</Text>
@@ -165,6 +219,9 @@ export default function More() {
 }
 
 const styles = StyleSheet.create({
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", padding: space.xl },
+  modalCard: { width: "100%", maxWidth: 380, borderRadius: radius.xl, padding: space.xl, gap: space.md },
+  pinInput: { borderRadius: radius.md, paddingHorizontal: space.lg, paddingVertical: space.md, fontFamily: fonts.bold, fontSize: 22, letterSpacing: 8, textAlign: "center" },
   profile: { flexDirection: "row", alignItems: "center", gap: space.lg },
   avatar: { width: 56, height: 56, borderRadius: radius.lg, alignItems: "center", justifyContent: "center" },
   avatarText: { fontFamily: fonts.bold, fontSize: 20, color: "#FFFFFF" },
