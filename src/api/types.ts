@@ -174,6 +174,8 @@ export interface MitoChatResponse {
   reply: string;
   expression: "happy" | "thinking" | "encouraging" | string;
   suggestedPrompts: string[];
+  /** Questions left today under the academy's daily limit; null/missing when unlimited. */
+  remainingToday?: number | null;
 }
 
 export interface MitoTodayResponse {

@@ -168,3 +168,8 @@ export function submitHomework(token: string, submissionId: string, answerText: 
   if (file) form.append("file", { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
   return apiFetch(`/api/assignments/mine/${submissionId}/submit`, { method: "POST", body: form, token });
 }
+
+/** Reports a Mito answer as wrong or unhelpful so the child's teacher can review and correct it. */
+export function flagMitoAnswer(token: string, body: { childId: string; mode: string; question: string; answer: string; reason?: string | null }): Promise<void> {
+  return apiFetch("/api/mito/flag", { method: "POST", body: JSON.stringify(body), token });
+}

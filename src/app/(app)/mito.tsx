@@ -4,11 +4,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Speech from "expo-speech";
 import { router, useLocalSearchParams, type Href } from "expo-router";
 import { useEffect, useRef, useState, type ElementRef } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { errorMessage } from "@/api/client";
-import { askMito, getMitoProgress, getMitoToday } from "@/api/parent";
+import { askMito, flagMitoAnswer, getMitoProgress, getMitoToday } from "@/api/parent";
 import type { MitoChatTurn } from "@/api/types";
 import { KeyboardSafe, useKeyboardVisible } from "@/components/keyboard";
 import { Screen } from "@/components/ui";
@@ -44,8 +44,31 @@ export default function MitoScreen() {
     onSuccess: (result) => {
       setMessages((current) => [...current, { role: "assistant", text: result.reply }]);
       setSuggestions(result.suggestedPrompts ?? []);
+      setRemaining(result.remainingToday ?? null);
     },
   });
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [flagged, setFlagged] = useState<Set<number>>(new Set());
+
+  /** Sends the answer (and the question before it) to the child's teacher to check. */
+  const reportReply = (index: number) => {
+    const answer = conversation[index]?.text;
+    const question = [...conversation.slice(0, index)].reverse().find((m) => m.role === "user")?.text;
+    if (!answer || !question || !childId) return;
+    const send = (reason: string) => {
+      void flagMitoAnswer(session.token, { childId, mode, question, answer, reason })
+        .then(() => {
+          setFlagged((current) => new Set(current).add(index));
+          Alert.alert("Thanks for telling us", "Your teacher will check this answer.");
+        })
+        .catch((error) => Alert.alert("Couldn't send", errorMessage(error)));
+    };
+    Alert.alert("Report this answer?", "The question and this answer go to your teacher to check.", [
+      { text: "It's wrong", onPress: () => send("Wrong answer") },
+      { text: "Not helpful", onPress: () => send("Not helpful") },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
 
   useEffect(() => () => { Speech.stop(); }, []);
   const speak = (text: string, index: number) => {
@@ -119,6 +142,7 @@ export default function MitoScreen() {
                 {message.role === "assistant" && <View style={styles.replyActions}>
                   {mito?.voiceEnabled !== false && <Pressable style={[styles.listenButton, speakingIndex === index && { backgroundColor: colors.primarySoft }]} onPress={() => speakingIndex === index ? (Speech.stop(), setSpeakingIndex(null)) : speak(message.text, index)} accessibilityRole="button" accessibilityLabel={speakingIndex === index ? "Stop reading reply" : `Read ${assistantName}'s reply aloud`}><Feather name={speakingIndex === index ? "square" : "volume-2"} size={13} color={colors.primary} /><Text style={[styles.listenText, { color: colors.primary }]}>{speakingIndex === index ? "Stop" : "Listen"}</Text></Pressable>}
                   <Pressable style={styles.listenButton} onPress={() => shareReply(message.text)} accessibilityRole="button" accessibilityLabel="Share this answer"><Feather name="share-2" size={13} color={colors.primary} /><Text style={[styles.listenText, { color: colors.primary }]}>Share</Text></Pressable>
+                  {index > 0 && <Pressable style={styles.listenButton} disabled={flagged.has(index)} onPress={() => reportReply(index)} accessibilityRole="button" accessibilityLabel={flagged.has(index) ? "Answer reported" : "Report this answer to your teacher"}><Feather name={flagged.has(index) ? "check" : "flag"} size={13} color={colors.muted} /><Text style={[styles.listenText, { color: colors.muted }]}>{flagged.has(index) ? "Reported" : "Report"}</Text></Pressable>}
                 </View>}
               </View>
             </View>
@@ -132,7 +156,7 @@ export default function MitoScreen() {
             <TextInput value={input} onChangeText={setInput} onSubmitEditing={() => submit()} placeholder="Ask anything about your learning..." placeholderTextColor={colors.muted} style={[styles.input, { color: colors.text }]} multiline maxLength={2000} editable={!send.isPending} accessibilityLabel="Message Mito" />
             <Pressable onPress={() => submit()} disabled={!input.trim() || send.isPending} style={[styles.sendButton, { backgroundColor: colors.primary, opacity: !input.trim() || send.isPending ? 0.4 : 1 }]} accessibilityRole="button" accessibilityState={{ disabled: !input.trim() || send.isPending }} accessibilityLabel="Send message"><Feather name="arrow-up" size={20} color="#FFFFFF" /></Pressable>
           </View>}
-          {!keyboardVisible && <Text style={[styles.disclaimer, { color: colors.muted }]}>{assistantName} can make mistakes. Check important answers with your teacher.</Text>}
+          {!keyboardVisible && <Text style={[styles.disclaimer, { color: colors.muted }]}>{remaining !== null && remaining <= 5 ? `${remaining} question${remaining === 1 ? "" : "s"} left today. ` : ""}{assistantName} can make mistakes. Check important answers with your teacher.</Text>}
         </View>
       </KeyboardSafe>
     </Screen>
