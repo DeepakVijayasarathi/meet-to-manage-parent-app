@@ -13,7 +13,8 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
   static getDerivedStateFromError(): State { return { failed: true }; }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    captureError(error, info.componentStack ?? "render");
+    captureError(error, "render", { fatal: true });
+    if (__DEV__ && info.componentStack) console.error(info.componentStack);
   }
 
   render() {

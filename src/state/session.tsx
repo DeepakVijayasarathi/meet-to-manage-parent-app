@@ -3,6 +3,7 @@ import { createContext, use, useCallback, useEffect, useMemo, useState, type Pro
 import { onUnauthorized } from "@/api/client";
 import { login } from "@/api/parent";
 import { readItem, writeItem } from "@/lib/storage";
+import { setCrashReportToken } from "@/lib/telemetry";
 
 const SESSION_KEY = "mtm.session";
 const FAMILY_ROLES = ["Parent", "Student"];
@@ -47,6 +48,8 @@ function isUsable(session: Session | null): session is Session {
 
 export function SessionProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
+  // Crash reports are only sent for a signed-in family, so the backend knows which academy they belong to.
+  useEffect(() => setCrashReportToken(session?.token ?? null), [session?.token]);
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
 

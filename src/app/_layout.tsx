@@ -10,8 +10,11 @@ import { AppState, Platform, useColorScheme, type AppStateStatus } from "react-n
 import { AppConfigProvider } from "@/state/appConfig";
 import { SessionProvider, useSession } from "@/state/session";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
+import { installGlobalErrorHandler } from "@/lib/telemetry";
 
 SplashScreen.preventAutoHideAsync();
+
+installGlobalErrorHandler();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
