@@ -10,6 +10,7 @@ import { AppState, Platform, Pressable, StyleSheet, Text, View } from "react-nat
 import { getSchedule } from "@/api/parent";
 import { Button, Logo } from "@/components/ui";
 import { BIOMETRIC_LOCK_KEY, CLASS_REMINDERS_KEY, readFlag, subscribeFlag } from "@/lib/preferences";
+import { routeForTarget } from "@/lib/notificationRoutes";
 import { reportAppHeartbeat } from "@/lib/appMonitoring";
 import { classTitle, reminderPlan } from "@/lib/schedule";
 import { captureError, track } from "@/lib/telemetry";
@@ -141,8 +142,12 @@ export function NotificationController() {
 
   useEffect(() => {
     const redirect = (notification: Notifications.Notification) => {
-      const url = notification.request.content.data?.url;
-      if (typeof url === "string" && url.startsWith("/")) router.push(url as Href);
+      const data = notification.request.content.data ?? {};
+      const url = data.url;
+      // Local class reminders carry a url; server pushes carry the notification's target.
+      const target = typeof url === "string" && url.startsWith("/") ? (url as Href)
+        : routeForTarget(typeof data.targetType === "string" ? data.targetType : null, typeof data.targetId === "string" ? data.targetId : null);
+      if (target) router.push(target);
       Notifications.clearLastNotificationResponse();
     };
     const last = Notifications.getLastNotificationResponse();

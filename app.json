@@ -62,6 +62,13 @@
       ],
       "expo-secure-store",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Meet to Manage to attach photos of homework for your child's teacher.",
+          "cameraPermission": "Allow Meet to Manage to take photos of homework for your child's teacher."
+        }
+      ],
+      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow Meet to Manage to use Face ID to unlock your family account."

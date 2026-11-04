@@ -128,6 +128,9 @@ export interface ApiNotification {
   body: string;
   isRead: boolean;
   createdAtUtc: string;
+  /** What a tap should open ("invoice", "class", "report", "ticket", "homework", ...). Missing on older servers. */
+  targetType?: string | null;
+  targetId?: string | null;
 }
 
 export interface ApiNotificationFeed {
@@ -177,6 +180,39 @@ export interface MitoTodayResponse {
   studentName: string;
   generatedAtUtc: string;
   items: { sessionId: string; title: string; teacherName: string; startsAtUtc: string; endsAtUtc: string; status: string }[];
+  /** Homework and tests due within a week (or overdue) that still need attention. Missing on older servers. */
+  homework?: { submissionId: string; title: string; kind: string; batchName: string; dueAtUtc: string | null; isOverdue: boolean }[];
+}
+
+export type AssignmentKind = "Homework" | "Test";
+export type SubmissionStatus = "Pending" | "Submitted" | "Graded" | "Excused";
+
+/** One child's homework or test, as the family sees it. Test marks stay null until results are released. */
+export interface ApiFamilyAssignment {
+  assignmentId: string;
+  submissionId: string;
+  childId: string;
+  childName: string;
+  batchName: string;
+  courseName: string | null;
+  teacherName: string | null;
+  kind: AssignmentKind;
+  title: string;
+  instructions: string | null;
+  topic: string | null;
+  attachmentFileName: string | null;
+  dueAtUtc: string | null;
+  maxMarks: number | null;
+  status: SubmissionStatus;
+  answerText: string | null;
+  submissionFileName: string | null;
+  submittedAtUtc: string | null;
+  isOverdue: boolean;
+  marks: number | null;
+  feedback: string | null;
+  resultsReleased: boolean;
+  classAverage: number | null;
+  canSubmit: boolean;
 }
 
 export interface MitoProgressResponse {

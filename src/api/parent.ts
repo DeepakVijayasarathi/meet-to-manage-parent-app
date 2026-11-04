@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 import type {
-  ApiAppConfig, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
+  ApiAppConfig, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiFamilyAssignment, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
   ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, MitoChatResponse, MitoChatTurn, MitoProgressResponse, MitoQuizAnswer, MitoQuizQuestion, MitoTodayResponse, SupportTicketCategory,
 } from "./types";
 
@@ -154,4 +154,17 @@ export function startMitoQuiz(token: string, childId: string, count = 5): Promis
 
 export function answerMitoQuiz(token: string, childId: string, questionId: string, optionId: string): Promise<MitoQuizAnswer> {
   return apiFetch<MitoQuizAnswer>("/api/mito/quiz/answer", { token, method: "POST", body: JSON.stringify({ childId, questionId, optionId }) });
+}
+
+export function getHomework(token: string): Promise<ApiFamilyAssignment[]> {
+  return apiFetch("/api/assignments/mine", { token });
+}
+
+/** Hands in homework: text, a photo/file, or both. `file` is a local URI from the image picker. */
+export function submitHomework(token: string, submissionId: string, answerText: string, file?: { uri: string; name: string; mimeType: string } | null): Promise<ApiFamilyAssignment> {
+  const form = new FormData();
+  if (answerText.trim()) form.append("answerText", answerText.trim());
+  // React Native's FormData accepts { uri, name, type } for files.
+  if (file) form.append("file", { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
+  return apiFetch(`/api/assignments/mine/${submissionId}/submit`, { method: "POST", body: form, token });
 }

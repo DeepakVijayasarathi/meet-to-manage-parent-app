@@ -41,7 +41,8 @@ export async function apiFetch<T>(path: string, init: RequestInit & { token?: st
       headers: {
         Accept: "application/json",
         ...CLIENT_HEADERS,
-        ...(rest.body ? { "Content-Type": "application/json" } : {}),
+        // FormData sets its own multipart boundary; forcing JSON would break uploads.
+        ...(rest.body && !(rest.body instanceof FormData) ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { Fragment } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -7,6 +8,7 @@ import { getNotifications, markAllNotificationsRead, markNotificationRead } from
 import type { ApiNotification, ApiNotificationFeed } from "@/api/types";
 import { Card, Divider, EmptyState, ErrorCard, IconTile, Screen, Skeleton, type IconName, type Tone } from "@/components/ui";
 import { timeAgo } from "@/lib/format";
+import { routeForTarget } from "@/lib/notificationRoutes";
 import { fonts, space, type, useColors } from "@/lib/theme";
 import { useRequiredSession } from "@/state/session";
 
@@ -18,6 +20,7 @@ function iconFor(n: ApiNotification): { icon: IconName; tone: Tone } {
   if (t.includes("class") || t.includes("session") || t.includes("reschedul") || t.includes("remind")) return { icon: "calendar", tone: "brand" };
   if (t.includes("report") || t.includes("progress")) return { icon: "file-text", tone: "info" };
   if (t.includes("ticket") || t.includes("support")) return { icon: "life-buoy", tone: "info" };
+  if (t.includes("homework") || t.includes("test")) return { icon: "edit-3", tone: "brand" };
   return { icon: "bell", tone: "neutral" };
 }
 
@@ -68,12 +71,16 @@ export default function Updates() {
           <Card padded={false}>
             {items.map((n, i) => {
               const { icon, tone } = iconFor(n);
+              const target = routeForTarget(n.targetType, n.targetId);
               return (
                 <Fragment key={n.id}>
                   {i > 0 && <Divider />}
                   <Pressable
-                    onPress={() => { if (!n.isRead) readOne.mutate(n.id); }}
-                    accessibilityRole="button"
+                    onPress={() => {
+                      if (!n.isRead) readOne.mutate(n.id);
+                      if (target) router.push(target);
+                    }}
+                    accessibilityRole={target ? "link" : "button"}
                     accessibilityLabel={`${n.isRead ? "" : "Unread. "}${n.subject ?? ""} ${n.body}`}
                     style={({ pressed }) => [styles.item, !n.isRead && { backgroundColor: colors.primarySoft }, pressed && { opacity: 0.8 }]}
                   >

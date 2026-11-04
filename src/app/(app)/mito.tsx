@@ -94,6 +94,13 @@ export default function MitoScreen() {
             <HeroStat icon="calendar" text={today.isPending ? "Loading today" : today.isError ? "Schedule unavailable" : `${today.data?.items.length ?? 0} classes today`} />
             <View style={styles.heroDivider} />
             <HeroStat icon="trending-up" text={progress.isPending ? "Loading progress" : progress.isError ? "Progress unavailable" : `${progress.data?.classesCompleted ?? 0} completed`} />
+            {today.data?.homework && <>
+              <View style={styles.heroDivider} />
+              <Pressable style={styles.heroStat} onPress={() => router.push("/homework" as Href)} accessibilityRole="link" accessibilityLabel="Open homework">
+                <Feather name="edit-3" size={14} color="#FFFFFF" />
+                <Text style={styles.heroStatText}>{today.data.homework.length} homework due</Text>
+              </Pressable>
+            </>}
           </View>
         </LinearGradient>}
         {!keyboardVisible && <Text style={[styles.quickLabel, compact && styles.quickLabelCompact, { color: colors.muted }]}>QUICK START</Text>}
