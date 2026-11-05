@@ -9,6 +9,7 @@ test("notification targets open the matching screen", () => {
   assert.equal(routeForTarget("ticket", "t9"), "/support/t9");
   assert.equal(routeForTarget("class"), "/classes");
   assert.equal(routeForTarget("report", "r1"), "/reports/r1");
+  assert.equal(routeForTarget("certificate", "c1"), "/certificates");
 });
 
 test("unknown or missing targets go nowhere", () => {

@@ -12,13 +12,13 @@ export const brand = {
 } as const;
 
 const light = {
-  background: "#FAFAF9",
+  background: "#F6F7F9",
   card: "#FFFFFF",
   text: brand.charcoal as string,
-  textSoft: "#4B5260",
+  textSoft: "#4B5563",
   muted: "#6B7280",
-  mutedBg: "#F4F4F2",
-  border: "#E8E7E3",
+  mutedBg: "#F1F2F4",
+  border: "#E6E8EB",
   primary: brand.orange as string,
   accent: brand.orangeTo as string,
   primaryText: "#FFFFFF",
@@ -33,17 +33,17 @@ const light = {
   dangerSoft: "rgba(220, 38, 38, 0.09)",
   info: "#2563EB",
   infoSoft: "rgba(37, 99, 235, 0.09)",
-  shadow: "rgba(16, 24, 40, 0.07)",
+  shadow: "rgba(16, 24, 40, 0.06)",
 };
 
 const dark: typeof light = {
-  background: "#0F1115",
-  card: "#171A20",
+  background: "#0C0E12",
+  card: "#15181D",
   text: "#F3F4F6",
   textSoft: "#C9CDD4",
   muted: "#9CA3AF",
-  mutedBg: "#1F232B",
-  border: "#272B33",
+  mutedBg: "#1C2027",
+  border: "#252A31",
   primary: "#FF8A3D",
   accent: "#F2611A",
   primaryText: "#FFFFFF",
@@ -89,22 +89,22 @@ export const fonts = {
 
 /** 4-pt spacing scale and radii shared by every screen. */
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
-export const radius = { sm: 10, md: 16, lg: 22, xl: 30, pill: 999 } as const;
+export const radius = { sm: 8, md: 12, lg: 16, xl: 22, pill: 999 } as const;
 
 /** Keeps tablet and web layouts comfortably readable instead of stretching cards edge-to-edge. */
 export const layout = { contentMax: 760, navigationMax: 720, formMax: 480 } as const;
 
-/** Soft, wide shadows (modern "floating" surfaces); colour comes from the palette's `shadow`. */
+/** Hairline shadows: surfaces are defined by their border, with just enough lift to separate. */
 export const elevation = {
-  low: { shadowOffset: { width: 0, height: 2 }, shadowOpacity: 1, shadowRadius: 8, elevation: 2 },
-  mid: { shadowOffset: { width: 0, height: 8 }, shadowOpacity: 1, shadowRadius: 24, elevation: 6 },
-  high: { shadowOffset: { width: 0, height: 16 }, shadowOpacity: 1, shadowRadius: 40, elevation: 12 },
+  low: { shadowOffset: { width: 0, height: 1 }, shadowOpacity: 1, shadowRadius: 2, elevation: 1 },
+  mid: { shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 12, elevation: 3 },
+  high: { shadowOffset: { width: 0, height: 10 }, shadowOpacity: 1, shadowRadius: 28, elevation: 10 },
 } as const;
 
 export const type = {
-  display: { fontFamily: fonts.bold, fontSize: 34, letterSpacing: -1, lineHeight: 40 },
-  title: { fontFamily: fonts.bold, fontSize: 28, letterSpacing: -0.7, lineHeight: 34 },
-  heading: { fontFamily: fonts.bold, fontSize: 18, letterSpacing: -0.3 },
+  display: { fontFamily: fonts.bold, fontSize: 30, letterSpacing: -0.8, lineHeight: 36 },
+  title: { fontFamily: fonts.bold, fontSize: 26, letterSpacing: -0.6, lineHeight: 32 },
+  heading: { fontFamily: fonts.semibold, fontSize: 17, letterSpacing: -0.2 },
   body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22 },
   label: { fontFamily: fonts.semibold, fontSize: 13 },
   caption: { fontFamily: fonts.medium, fontSize: 12 },

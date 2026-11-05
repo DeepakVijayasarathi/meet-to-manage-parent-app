@@ -48,6 +48,7 @@ export default function AppLayout() {
       <Stack.Protected guard={enabled("feedback")}><Stack.Screen name="feedback" options={{ title: "Share feedback", presentation: "modal" }} /></Stack.Protected>
       <Stack.Screen name="homework/index" options={{ title: "Homework & Tests" }} />
       <Stack.Screen name="homework/[id]" options={{ title: "Homework" }} />
+      <Stack.Screen name="certificates/index" options={{ title: "Certificates" }} />
       <Stack.Protected guard={enabled("reports")}>
         <Stack.Screen name="reports/index" options={{ title: "Progress reports" }} />
         <Stack.Screen name="reports/[id]" options={{ title: "Report" }} />

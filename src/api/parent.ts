@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 import type {
-  ApiAppConfig, ApiChildRewards, ApiClassSession, ApiSchedulePreference, ApiSchedulePreferenceSave, ApiCourseOption, ApiEnrollmentForm, ApiFamilyAssignment, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPaymentMethod, ApiPaymentResult, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
+  ApiAppConfig, ApiCertificate, ApiChildRewards, ApiClassSession, ApiSchedulePreference, ApiSchedulePreferenceSave, ApiCourseOption, ApiEnrollmentForm, ApiFamilyAssignment, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPaymentMethod, ApiPaymentResult, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
   ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, MitoChatResponse, MitoChatTurn, MitoProgressResponse, MitoQuizAnswer, MitoQuizQuestion, MitoTodayResponse, SupportTicketCategory,
 } from "./types";
 
@@ -206,4 +206,8 @@ export function payInvoice(token: string, id: string, methodKey: string, amount?
 /** Asks the gateway whether the checkout completed and settles the invoice if so (no webhook needed). */
 export function refreshInvoicePayment(token: string, id: string): Promise<ApiInvoice> {
   return apiFetch<ApiInvoice>(`/api/parent-portal/invoices/${id}/refresh-payment`, { token, method: "POST" });
+}
+
+export function getCertificates(token: string): Promise<ApiCertificate[]> {
+  return apiFetch("/api/certificates/mine", { token });
 }

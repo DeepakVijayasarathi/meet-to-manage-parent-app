@@ -20,6 +20,8 @@ export function routeForTarget(targetType?: string | null, targetId?: string | n
       return "/resources" as Href;
     case "recording":
       return "/recordings" as Href;
+    case "certificate":
+      return "/certificates" as Href;
     case "home":
       return "/" as Href;
     default:

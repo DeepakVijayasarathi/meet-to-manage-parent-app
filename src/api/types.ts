@@ -364,3 +364,15 @@ export type ApiSchedulePreferenceSave = Pick<ApiSchedulePreference, "courseId" |
 export interface ApiPaymentMethod { key: string; name: string }
 /** `redirect` carries a gateway checkout `url`; `cash` records an intent for staff to confirm; `unavailable` explains why not. */
 export interface ApiPaymentResult { mode: "redirect" | "cash" | "unavailable" | string; url: string | null; gatewayReference: string | null; message: string }
+
+/** A course-completion certificate. */
+export interface ApiCertificate {
+  id: string;
+  childId: string;
+  code: string;
+  studentName: string;
+  courseName: string;
+  teacherName: string | null;
+  batchName: string | null;
+  issuedAtUtc: string;
+}
