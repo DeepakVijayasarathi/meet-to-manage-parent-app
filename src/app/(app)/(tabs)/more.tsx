@@ -17,7 +17,7 @@ import { useRequiredSession, useSession } from "@/state/session";
 import { useAppConfig } from "@/state/appConfig";
 
 /** `href` is a native screen; `portal` a web-portal page opened in-app, already signed in. */
-type Feature = "reports" | "resources" | "recordings" | "enrollment" | "support";
+type Feature = "classes" | "reports" | "resources" | "recordings" | "enrollment" | "support";
 type Item = { label: string; detail: string; icon: IconName; tone: Tone; href?: Href; portal?: string; feature?: Feature };
 
 const GROUPS: { title: string; items: Item[] }[] = [
@@ -25,6 +25,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
     title: "Learning",
     items: [
       { label: "Homework & tests", detail: "Hand in work and see results", icon: "edit-3", tone: "brand", href: "/homework" as Href },
+      { label: "Stars & badges", detail: "Rewards your child has earned in class", icon: "award", tone: "warning", href: "/rewards" as Href, feature: "classes" },
       { label: "Progress reports", detail: "Monthly notes from teachers", icon: "file-text", tone: "brand", href: "/reports" as Href, feature: "reports" },
       { label: "Learning resources", detail: "Worksheets and reading books", icon: "book-open", tone: "info", href: "/resources" as Href, feature: "resources" },
       { label: "Class recordings", detail: "Watch past classes again", icon: "play-circle", tone: "success", href: "/recordings" as Href, feature: "recordings" },
@@ -33,8 +34,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
   {
     title: "Family",
     items: [
-      { label: "Add a child", detail: "Enrol a brother or sister", icon: "user-plus", tone: "brand", portal: "/parent/add-child" },
-      { label: "Enrollment form", detail: "Enrol your child and share class preferences", icon: "clipboard", tone: "info", href: "/enrollment" as Href, feature: "enrollment" },
+      { label: "Add a child / enrollment", detail: "Enrol a brother or sister, or share class preferences", icon: "user-plus", tone: "brand", href: "/enrollment" as Href, feature: "enrollment" },
     ],
   },
   {

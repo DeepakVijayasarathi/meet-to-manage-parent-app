@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { errorMessage } from "@/api/client";
 
-import { getChildren, getDashboard, getPendingFeedback, getSchedule } from "@/api/parent";
+import { getChildRewards, getChildren, getDashboard, getPendingFeedback, getSchedule } from "@/api/parent";
 import type { ApiClassSession, ApiParentChildSummary } from "@/api/types";
 import { Appear, Badge, Button, Card, EmptyState, IconTile, Logo, SectionHeader, Skeleton, StatCard, type IconName, type Tone } from "@/components/ui";
 import { SessionRow, dayLabel } from "@/components/sessions";
@@ -67,6 +67,13 @@ export default function Dashboard() {
   const family = useMemo(() => children.data ?? [], [children.data]);
   const firstName = session.userName.split(" ")[0] || "there";
   const childFirst = child?.name.split(" ")[0];
+
+  const rewards = useQuery({
+    queryKey: ["rewards", session.token, child?.childId],
+    queryFn: () => getChildRewards(session.token, child!.childId),
+    enabled: !!child && config?.features?.classes !== false,
+    staleTime: 5 * 60_000,
+  });
 
   // Measured against when the schedule was fetched; pull-to-refresh moves it on.
   const fetchedAt = schedule.dataUpdatedAt;
@@ -254,6 +261,29 @@ export default function Dashboard() {
                 />
               </View>
             </Appear>
+
+            {rewards.data && (rewards.data.totalStars > 0 || rewards.data.rewards.length > 0) && child && (
+              <Appear index={3}>
+                <Pressable
+                  onPress={() => router.push(`/rewards?childId=${encodeURIComponent(child.childId)}` as Href)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${childFirst} has ${rewards.data.totalStars} stars and ${rewards.data.rewards.length} badges. View rewards`}
+                >
+                  <Card style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+                    <IconTile icon="star" tone="warning" size={46} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[type.label, { color: colors.text }]}>{childFirst}&apos;s stars</Text>
+                      <Text style={[type.caption, { color: colors.muted }]}>
+                        {rewards.data.totalStars} {rewards.data.totalStars === 1 ? "star" : "stars"}
+                        {rewards.data.starsLast30Days > 0 ? ` · +${rewards.data.starsLast30Days} this month` : ""}
+                        {rewards.data.rewards.length > 0 ? ` · ${rewards.data.rewards.length} ${rewards.data.rewards.length === 1 ? "badge" : "badges"}` : ""}
+                      </Text>
+                    </View>
+                    <Feather name="chevron-right" size={18} color={colors.muted} />
+                  </Card>
+                </Pressable>
+              </Appear>
+            )}
 
             <Appear index={3}>
               <SectionHeader title="Quick access" />

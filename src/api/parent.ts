@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 import type {
-  ApiAppConfig, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiFamilyAssignment, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
+  ApiAppConfig, ApiChildRewards, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiFamilyAssignment, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPaymentMethod, ApiPaymentResult, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
   ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, MitoChatResponse, MitoChatTurn, MitoProgressResponse, MitoQuizAnswer, MitoQuizQuestion, MitoTodayResponse, SupportTicketCategory,
 } from "./types";
 
@@ -172,4 +172,30 @@ export function submitHomework(token: string, submissionId: string, answerText: 
 /** Reports a Mito answer as wrong or unhelpful so the child's teacher can review and correct it. */
 export function flagMitoAnswer(token: string, body: { childId: string; mode: string; question: string; answer: string; reason?: string | null }): Promise<void> {
   return apiFetch("/api/mito/flag", { method: "POST", body: JSON.stringify(body), token });
+}
+
+export function getChildRewards(token: string, childId: string): Promise<ApiChildRewards> {
+  return apiFetch<ApiChildRewards>(`/api/parent-portal/children/${childId}/rewards`, { token });
+}
+
+export function getTermsStatus(token: string): Promise<{ required: boolean }> {
+  return apiFetch<{ required: boolean }>("/api/parent-portal/terms-status", { token });
+}
+
+export function acceptTerms(token: string): Promise<void> {
+  return apiFetch<void>("/api/parent-portal/terms/accept", { token, method: "POST" });
+}
+
+export function getPaymentMethods(token: string): Promise<ApiPaymentMethod[]> {
+  return apiFetch<ApiPaymentMethod[]>("/api/parent-portal/payment-methods", { token });
+}
+
+/** `amount` omitted pays the whole balance; a smaller value is an installment. */
+export function payInvoice(token: string, id: string, methodKey: string, amount?: number): Promise<ApiPaymentResult> {
+  return apiFetch<ApiPaymentResult>(`/api/parent-portal/invoices/${id}/pay`, { token, method: "POST", body: JSON.stringify({ methodKey, amount }) });
+}
+
+/** Asks the gateway whether the checkout completed and settles the invoice if so (no webhook needed). */
+export function refreshInvoicePayment(token: string, id: string): Promise<ApiInvoice> {
+  return apiFetch<ApiInvoice>(`/api/parent-portal/invoices/${id}/refresh-payment`, { token, method: "POST" });
 }

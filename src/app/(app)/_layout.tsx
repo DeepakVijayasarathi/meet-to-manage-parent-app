@@ -35,10 +35,12 @@ export default function AppLayout() {
       </Stack.Protected>
       <Stack.Protected guard={enabled("classes")}>
         <Stack.Screen name="class/[id]" options={{ title: "Class" }} />
+        <Stack.Screen name="rewards" options={{ title: "Stars & badges" }} />
         <Stack.Screen name="live/[id]" options={{ headerShown: false, presentation: "fullScreenModal" }} />
       </Stack.Protected>
       <Stack.Protected guard={enabled("enrollment")}><Stack.Screen name="enrollment" options={{ title: "Enrollment" }} /></Stack.Protected>
       <Stack.Screen name="portal" options={{ title: "Meet to Manage" }} />
+      <Stack.Screen name="pay/[id]" options={{ title: "Pay fees" }} />
       <Stack.Protected guard={enabled("feedback")}><Stack.Screen name="feedback" options={{ title: "Share feedback", presentation: "modal" }} /></Stack.Protected>
       <Stack.Screen name="homework/index" options={{ title: "Homework & Tests" }} />
       <Stack.Screen name="homework/[id]" options={{ title: "Homework" }} />

@@ -25,9 +25,14 @@ type Filter = "all" | "due" | "paid";
 
 const balance = (i: ApiInvoice) => Math.max(0, i.amount - i.amountPaid);
 
-/** Payment runs on the web portal's secure checkout (gateways, T&C, receipts), opened in-app already signed in. */
+/** Payment runs natively (method, amount, T&C); only the gateway's own checkout page opens in the browser sheet. */
+function payInvoice(id: string) {
+  router.push({ pathname: "/pay/[id]", params: { id } });
+}
+
+/** Receipts and the full billing history still live on the web portal, opened in-app already signed in. */
 function openBilling() {
-  router.push({ pathname: "/portal", params: { path: "/parent/billing", title: "Pay fees" } });
+  router.push({ pathname: "/portal", params: { path: "/parent/billing", title: "Billing" } });
 }
 
 export default function Fees() {
@@ -41,6 +46,8 @@ export default function Fees() {
   const outstanding = open.reduce((sum, i) => sum + balance(i), 0);
   const overdue = open.filter((i) => i.status === "Overdue").length;
   const currency = all[0]?.currency ?? "INR";
+  // Oldest due date first: that's the invoice a family should settle before the others.
+  const nextToPay = [...open].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
   const shown = filter === "due" ? open : filter === "paid" ? all.filter((i) => i.status === "Paid") : all;
 
   return (
@@ -52,7 +59,7 @@ export default function Fees() {
           <Text style={styles.summaryNote}>
             {outstanding === 0 ? "You're all caught up. Thank you!" : `${open.length} open ${open.length === 1 ? "invoice" : "invoices"}${overdue ? ` · ${overdue} overdue` : ""}`}
           </Text>
-          {outstanding > 0 && <Button label="Pay securely" icon="lock" variant="secondary" onPress={openBilling} style={{ marginTop: space.md }} />}
+          {outstanding > 0 && <Button label={open.length > 1 ? "Pay oldest invoice" : "Pay securely"} icon="lock" variant="secondary" onPress={() => nextToPay && payInvoice(nextToPay.id)} style={{ marginTop: space.md }} />}
         </LinearGradient>
       )}
 
@@ -75,7 +82,7 @@ export default function Fees() {
                     tone={s.tone}
                     title={inv.courseName ?? inv.departmentName}
                     subtitle={[inv.childName, due ? `Due ${formatDate(inv.dueDate)}` : inv.paidAtUtc ? `Paid ${formatDate(inv.paidAtUtc)}` : `#${inv.invoiceNumber}`].filter(Boolean).join(" · ")}
-                    onPress={due ? openBilling : undefined}
+                    onPress={due ? () => payInvoice(inv.id) : undefined}
                     chevron={false}
                     right={
                       <View style={styles.right}>
@@ -92,8 +99,9 @@ export default function Fees() {
 
       <View style={styles.secure}>
         <Feather name="shield" size={13} color={colors.muted} />
-        <Text style={[type.caption, { color: colors.muted }]}>Payments are processed on our secure website checkout.</Text>
+        <Text style={[type.caption, { color: colors.muted }]}>Payments are processed on your academy&apos;s secure gateway.</Text>
       </View>
+      <Button label="Receipts & billing history" icon="external-link" variant="secondary" size="sm" onPress={openBilling} />
     </Screen>
   );
 }

@@ -345,3 +345,13 @@ export interface ApiAppConfig {
     fontFamily: string | null; headingFont: string | null;
   };
 }
+
+export interface ApiChildReward { label: string; kind: "Star" | "Badge" | "Milestone" | string; earnedAtUtc: string }
+export interface ApiChildRewards {
+  childId: string; childName: string; totalStars: number; starsLast30Days: number;
+  rewards: ApiChildReward[]; nextMilestoneStars: number | null; nextMilestoneLabel: string | null;
+}
+
+export interface ApiPaymentMethod { key: string; name: string }
+/** `redirect` carries a gateway checkout `url`; `cash` records an intent for staff to confirm; `unavailable` explains why not. */
+export interface ApiPaymentResult { mode: "redirect" | "cash" | "unavailable" | string; url: string | null; gatewayReference: string | null; message: string }
