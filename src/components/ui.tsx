@@ -81,7 +81,7 @@ export function IconTile({ icon, tone = "brand", size = 40 }: { icon: IconName; 
   const colors = useColors();
   const { bg, fg } = toneColors(colors, tone);
   return (
-    <View style={[styles.iconTile, { width: size, height: size, borderRadius: size * 0.36, backgroundColor: bg }]}>
+    <View style={[styles.iconTile, { width: size, height: size, borderRadius: size * 0.28, backgroundColor: bg }]}>
       <Feather name={icon} size={size * 0.46} color={fg} />
     </View>
   );
@@ -145,7 +145,7 @@ export function Button({ label, onPress, icon, variant = "primary", disabled, lo
       style={({ pressed }) => [{ opacity: disabled && !loading ? 0.45 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }, style]}
     >
       {variant === "primary" ? (
-        <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.button, size === "sm" && styles.buttonSm, styles.buttonShadow, { shadowColor: colors.primary }]}>
+        <LinearGradient colors={[colors.primary, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.button, size === "sm" && styles.buttonSm, styles.buttonShadow, { shadowColor: colors.primary }]}>
           {content}
         </LinearGradient>
       ) : (
@@ -305,27 +305,27 @@ const styles = StyleSheet.create({
   logoDivider: { width: 1.5, height: 22, borderRadius: 1, opacity: 0.85 },
   wordmark: { fontFamily: fonts.bold, fontSize: 18, letterSpacing: -0.4 },
   wordmarkTo: { fontFamily: fonts.semibold, fontSize: 14 },
-  // On the white page a card is a fine 1px outline plus a wide, faint shadow.
+  // A card is a fine 1px outline with a hairline shadow.
   card: {
     borderRadius: radius.lg,
     borderWidth: 1,
-    ...elevation.mid,
+    ...elevation.low,
   },
-  cardPadded: { padding: space.xl },
+  cardPadded: { padding: space.lg },
   sectionHeader: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: space.sm, marginBottom: space.md, paddingHorizontal: 2 },
   iconTile: { alignItems: "center", justifyContent: "center" },
   stat: { flex: 1, gap: space.md, minHeight: 138, borderRadius: radius.lg, padding: space.lg },
   statIcon: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   statTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  statValue: { fontFamily: fonts.bold, fontSize: 28, letterSpacing: -0.8 },
+  statValue: { fontFamily: fonts.bold, fontSize: 26, letterSpacing: -0.6, fontVariant: ["tabular-nums"] },
   skeleton: { height: 30, width: 64, borderRadius: radius.sm },
   badge: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontFamily: fonts.semibold, fontSize: 12 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  button: { flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "center", borderRadius: radius.pill, minHeight: 56, paddingHorizontal: space.xxl },
-  buttonShadow: { shadowColor: brand.orangeTo, shadowOpacity: 0.35, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 6 },
-  buttonSm: { minHeight: 40, borderRadius: radius.pill, paddingHorizontal: space.lg },
-  buttonText: { fontFamily: fonts.bold, fontSize: 16, letterSpacing: 0.1 },
+  button: { flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "center", borderRadius: radius.md, minHeight: 50, paddingHorizontal: space.xl },
+  buttonShadow: { shadowColor: brand.orangeTo, shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  buttonSm: { minHeight: 38, borderRadius: radius.sm, paddingHorizontal: space.md },
+  buttonText: { fontFamily: fonts.semibold, fontSize: 16 },
   buttonTextSm: { fontSize: 14 },
   screen: { flex: 1, paddingHorizontal: space.lg, alignItems: "center" },
   screenBody: { paddingHorizontal: space.xl },
@@ -334,8 +334,9 @@ const styles = StyleSheet.create({
   // non-scrolling screens. Without this, Android measures it at its minimum
   // height and the entire interface collapses into a strip at the top.
   fixedContent: { flex: 1, alignSelf: "center" },
-  ambientTop: { position: "absolute", width: 300, height: 300, borderRadius: 150, top: -190, right: -110, opacity: 0.72 },
-  ambientSide: { position: "absolute", width: 220, height: 220, borderRadius: 110, top: 280, left: -180, opacity: 0.28 },
+  // Decorative background blobs are off: the page stays a calm, flat surface.
+  ambientTop: { display: "none" },
+  ambientSide: { display: "none" },
   screenHeader: { flexDirection: "row", alignItems: "flex-end", gap: space.md },
   listRow: { flexDirection: "row", alignItems: "center", gap: space.md, paddingHorizontal: space.lg, paddingVertical: 14, minHeight: 64 },
   rowTitle: { fontFamily: fonts.semibold, fontSize: 15 },
