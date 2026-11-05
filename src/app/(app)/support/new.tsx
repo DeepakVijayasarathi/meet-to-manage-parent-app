@@ -1,6 +1,6 @@
 import Feather from "@expo/vector-icons/Feather";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -16,10 +16,14 @@ export default function NewRequest() {
   const colors = useColors();
   const session = useRequiredSession();
   const queryClient = useQueryClient();
-  const [category, setCategory] = useState<SupportTicketCategory | null>(null);
-  const [childId, setChildId] = useState("none");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  // Other screens can open this form already filled in (e.g. "Request a reschedule" on a class).
+  const prefill = useLocalSearchParams<{ category?: string; childId?: string; subject?: string; message?: string }>();
+  const [category, setCategory] = useState<SupportTicketCategory | null>(
+    TICKET_CATEGORIES.some((c) => c.value === prefill.category) ? (prefill.category as SupportTicketCategory) : null,
+  );
+  const [childId, setChildId] = useState(prefill.childId || "none");
+  const [subject, setSubject] = useState(prefill.subject ?? "");
+  const [message, setMessage] = useState(prefill.message ?? "");
   const children = useQuery({ queryKey: ["children", session.token], queryFn: () => getChildren(session.token) });
   const family = (children.data ?? []).filter((c) => c.isActive);
 

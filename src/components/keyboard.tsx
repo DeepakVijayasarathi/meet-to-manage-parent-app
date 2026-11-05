@@ -1,6 +1,6 @@
 import { HeaderHeightContext } from "expo-router/react-navigation";
-import { useContext, useEffect, useState, type ReactNode } from "react";
-import { Keyboard, KeyboardAvoidingView, Platform, View, type StyleProp, type ViewStyle } from "react-native";
+import { useContext, useEffect, useState, type ComponentRef, type ReactNode } from "react";
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, View, type StyleProp, type ViewStyle } from "react-native";
 
 /**
  * Keeps inputs above the on-screen keyboard. iOS needs explicit padding; Android already
@@ -42,6 +42,17 @@ export function useKeyboardHeight(): number {
 /** True while the software keyboard is open (the floating tab bar hides then). */
 export function useKeyboardVisible(): boolean {
   return useKeyboardHeight() > 0;
+}
+
+/**
+ * Scrolls the currently focused input to just below the top of the visible area, so the keyboard never hides it.
+ * Pass the ScrollView's ref; use as `<KeyboardSpacer onOpen={() => scrollFocusedInputIntoView(ref)} />`.
+ */
+export function scrollFocusedInputIntoView(scroller: { current: ComponentRef<typeof ScrollView> | null }, offset = 160) {
+  const inner = scroller.current?.getInnerViewRef();
+  const input = TextInput.State.currentlyFocusedInput?.();
+  if (!inner || !input) return;
+  input.measureLayout(inner as never, (_x, y) => scroller.current?.scrollTo({ y: Math.max(0, y - offset), animated: true }), () => undefined);
 }
 
 /**

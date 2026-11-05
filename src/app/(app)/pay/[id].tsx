@@ -7,8 +7,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { ApiError, errorMessage } from "@/api/client";
 import { acceptTerms, getInvoices, getPaymentMethods, getTermsStatus, payInvoice, refreshInvoicePayment } from "@/api/parent";
 import type { ApiInvoice } from "@/api/types";
-import { CheckRow, Field, TextField } from "@/components/form";
-import { Button, Card, Chips, EmptyState, ErrorCard, Screen, Skeleton } from "@/components/ui";
+import { CheckRow, Field, Pills, TextField } from "@/components/form";
+import { Button, Card, EmptyState, ErrorCard, Screen, Skeleton } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { captureError, track } from "@/lib/telemetry";
 import { fonts, space, type, useColors } from "@/lib/theme";
@@ -136,7 +136,7 @@ export default function PayInvoice() {
             <Button label="Back to fees" variant="secondary" onPress={() => router.back()} />
           </Card>
         ) : (
-          <>
+          <View style={styles.form}>
             <Card style={{ gap: space.xs }}>
               <Text style={[type.overline, { color: colors.muted }]}>{title}</Text>
               <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(balance, invoice.currency)}</Text>
@@ -150,38 +150,45 @@ export default function PayInvoice() {
                 <Card><EmptyState icon="credit-card" title="No payment methods" description="Your academy hasn't enabled online payments yet. Please contact them." /></Card>
               ) : (
                 <>
-                  <Field label="Payment method">
-                    <Chips options={(methods.data ?? []).map((m) => ({ value: m.key, label: m.name }))} value={method} onChange={setMethod} />
-                  </Field>
-                  <Field
-                    label="Amount (optional)"
-                    hint={`Leave empty to pay the full ${formatCurrency(balance, invoice.currency)}, or enter a smaller instalment.`}
-                    error={customInvalid ? `Enter an amount between ${formatCurrency(1, invoice.currency)} and ${formatCurrency(balance, invoice.currency)}.` : undefined}
-                  >
-                    <TextField value={custom} onChangeText={setCustom} keyboardType="decimal-pad" placeholder={String(Math.round(balance))} error={customInvalid} accessibilityLabel="Amount to pay" />
-                  </Field>
-                  {termsRequired && (
-                    <CheckRow checked={accepted} onChange={setAccepted}>
-                      I accept the academy&apos;s Terms &amp; Conditions for fee payments. (Asked once, before your first payment.)
-                    </CheckRow>
-                  )}
+                  <Card style={{ gap: space.xl }}>
+                    <Field label="Payment method">
+                      <Pills options={(methods.data ?? []).map((m) => ({ value: m.key, label: m.name }))} value={method} onChange={setMethod} />
+                    </Field>
+                    <Field
+                      label="Amount (optional)"
+                      hint={`Leave empty to pay the full ${formatCurrency(balance, invoice.currency)}, or enter a smaller instalment.`}
+                      error={customInvalid ? `Enter an amount between ${formatCurrency(1, invoice.currency)} and ${formatCurrency(balance, invoice.currency)}.` : undefined}
+                    >
+                      <TextField value={custom} onChangeText={setCustom} keyboardType="decimal-pad" placeholder={String(Math.round(balance))} error={customInvalid} accessibilityLabel="Amount to pay" />
+                    </Field>
+                    {termsRequired && (
+                      <CheckRow checked={accepted} onChange={setAccepted}>
+                        I accept the academy&apos;s Terms &amp; Conditions for fee payments. (Asked once, before your first payment.)
+                      </CheckRow>
+                    )}
+                  </Card>
                   {error && <Text style={[type.label, { color: colors.danger }]} accessibilityRole="alert">{error}</Text>}
-                  <Button
-                    label={`Pay ${formatCurrency(payAmount, invoice.currency)}`}
-                    icon="lock"
-                    onPress={() => pay.mutate()}
-                    loading={pay.isPending}
-                    disabled={!method || customInvalid || (termsRequired && !accepted)}
-                  />
-                  <Text style={[type.caption, { color: colors.muted, textAlign: "center" }]}>You&apos;ll complete the payment on the gateway&apos;s secure page, then return here.</Text>
+                  <View style={{ gap: space.md }}>
+                    <Button
+                      label={`Pay ${formatCurrency(payAmount, invoice.currency)}`}
+                      icon="lock"
+                      onPress={() => pay.mutate()}
+                      loading={pay.isPending}
+                      disabled={!method || customInvalid || (termsRequired && !accepted)}
+                    />
+                    <Text style={[type.caption, { color: colors.muted, textAlign: "center", paddingHorizontal: space.md }]}>
+                      {method === "cash" ? "Your academy will confirm the cash payment once they receive it." : "You'll complete the payment on the gateway's secure page, then return here."}
+                    </Text>
+                  </View>
                 </>
               )}
-          </>
+          </View>
         )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  form: { gap: space.xl },
   amount: { fontFamily: fonts.bold, fontSize: 32, letterSpacing: -1 },
 });

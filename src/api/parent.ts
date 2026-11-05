@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 import type {
-  ApiAppConfig, ApiChildRewards, ApiClassSession, ApiCourseOption, ApiEnrollmentForm, ApiFamilyAssignment, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPaymentMethod, ApiPaymentResult, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
+  ApiAppConfig, ApiChildRewards, ApiClassSession, ApiSchedulePreference, ApiSchedulePreferenceSave, ApiCourseOption, ApiEnrollmentForm, ApiFamilyAssignment, ApiInvoice, ApiMyAccount, ApiJitsiJoin, ApiPaymentMethod, ApiPaymentResult, ApiPendingParentFeedback, ApiNotificationFeed, ApiParentChild, ApiParentDashboard, ApiParentRecording, ApiProgressReport,
   ApiResource, ApiResourcePlayback, ApiSupportTicketDetail, ApiSupportTicketSummary, LoginResponse, MitoChatResponse, MitoChatTurn, MitoProgressResponse, MitoQuizAnswer, MitoQuizQuestion, MitoTodayResponse, SupportTicketCategory,
 } from "./types";
 
@@ -176,6 +176,14 @@ export function flagMitoAnswer(token: string, body: { childId: string; mode: str
 
 export function getChildRewards(token: string, childId: string): Promise<ApiChildRewards> {
   return apiFetch<ApiChildRewards>(`/api/parent-portal/children/${childId}/rewards`, { token });
+}
+
+export function getSchedulePreference(token: string, childId: string): Promise<ApiSchedulePreference> {
+  return apiFetch<ApiSchedulePreference>(`/api/parent-portal/children/${childId}/schedule-preference`, { token });
+}
+
+export function saveSchedulePreference(token: string, childId: string, body: ApiSchedulePreferenceSave): Promise<ApiSchedulePreference> {
+  return apiFetch<ApiSchedulePreference>(`/api/parent-portal/children/${childId}/schedule-preference`, { token, method: "PUT", body: JSON.stringify(body) });
 }
 
 export function getTermsStatus(token: string): Promise<{ required: boolean }> {

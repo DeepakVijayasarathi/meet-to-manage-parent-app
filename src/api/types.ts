@@ -352,6 +352,15 @@ export interface ApiChildRewards {
   rewards: ApiChildReward[]; nextMilestoneStars: number | null; nextMilestoneLabel: string | null;
 }
 
+export interface ApiSchedulePreference {
+  childId: string; childName: string; dateOfBirth: string | null; gender: string | null; grade: string | null;
+  courseId: string | null; courseName: string | null; preferredStartDate: string | null; daysPerWeek: number | null;
+  preferredDays: string[]; dayTimes: Record<string, string>; timeZoneId: string | null;
+  schoolName: string | null; priorExperience: string | null; allergies: string | null; notes: string | null;
+  hasSubmitted: boolean; submittedAtUtc: string | null;
+}
+export type ApiSchedulePreferenceSave = Pick<ApiSchedulePreference, "courseId" | "preferredStartDate" | "preferredDays" | "dayTimes" | "timeZoneId" | "schoolName" | "grade" | "dateOfBirth" | "gender" | "priorExperience" | "allergies" | "notes"> & { daysPerWeek: number };
+
 export interface ApiPaymentMethod { key: string; name: string }
 /** `redirect` carries a gateway checkout `url`; `cash` records an intent for staff to confirm; `unavailable` explains why not. */
 export interface ApiPaymentResult { mode: "redirect" | "cash" | "unavailable" | string; url: string | null; gatewayReference: string | null; message: string }

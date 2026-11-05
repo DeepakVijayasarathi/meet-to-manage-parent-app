@@ -144,6 +144,25 @@ export default function ClassDetails() {
         )
       )}
 
+      {canParentCancel(cls) && !cancelling && !cancel.isSuccess && (
+        <Button
+          label="Request a reschedule"
+          icon="repeat"
+          variant="ghost"
+          onPress={() => router.push({
+            pathname: "/support/new",
+            params: {
+              category: "ClassSchedule",
+              ...(cls.childIds?.length === 1 ? { childId: cls.childIds[0] } : {}),
+              subject: `Reschedule request: ${classTitle(cls)}`,
+              message: `Please could we move ${classTitle(cls)} on ${formatDate(cls.scheduledStartAtUtc, { weekday: "long", day: "numeric", month: "long" })} at ${time(start)}?
+
+Preferred new day and time: `,
+            },
+          })}
+        />
+      )}
+
       {cancel.isSuccess && (
         <Card style={[styles.done, { backgroundColor: colors.successSoft, borderColor: colors.successSoft }]}>
           <Feather name="check-circle" size={18} color={colors.success} />

@@ -129,7 +129,9 @@ export function Button({ label, onPress, icon, variant = "primary", disabled, lo
 }) {
   const colors = useColors();
   const inactive = disabled || loading;
-  const fg = variant === "primary" ? "#FFFFFF" : variant === "secondary" ? colors.text : colors.primaryInk;
+  // A disabled primary action reads as flat grey, not a washed-out gradient.
+  const flat = !!disabled && !loading && variant === "primary";
+  const fg = flat ? colors.muted : variant === "primary" ? "#FFFFFF" : variant === "secondary" ? colors.text : colors.primaryInk;
   const content = loading ? <ActivityIndicator color={fg} /> : (
     <>
       <Text style={[styles.buttonText, size === "sm" && styles.buttonTextSm, { color: fg }]}>{label}</Text>
@@ -142,9 +144,11 @@ export function Button({ label, onPress, icon, variant = "primary", disabled, lo
       disabled={inactive}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!inactive, busy: !!loading }}
-      style={({ pressed }) => [{ opacity: disabled && !loading ? 0.45 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }, style]}
+      style={({ pressed }) => [{ opacity: disabled && !loading && !flat ? 0.45 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }, style]}
     >
-      {variant === "primary" ? (
+      {flat ? (
+        <View style={[styles.button, size === "sm" && styles.buttonSm, { backgroundColor: colors.border }]}>{content}</View>
+      ) : variant === "primary" ? (
         <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.button, size === "sm" && styles.buttonSm, styles.buttonShadow, { shadowColor: colors.primary }]}>
           {content}
         </LinearGradient>

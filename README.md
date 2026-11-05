@@ -66,11 +66,11 @@ Test notification permission, scheduled class reminders, biometric lock, camera/
 4. In App Store Connect, complete the privacy questionnaire, age rating, support/privacy URLs, screenshots, review notes, and test account. The app declares that it does not use non-exempt encryption.
 5. Create the production build and submit it with the commands above. Run one final TestFlight check on a physical device before requesting review.
 
-Remote push notifications are not part of the current release: reminders are scheduled locally. Do not enable App Store capabilities for remote push until the backend stores device tokens and sends notifications through APNs/Expo Push.
+Remote push is delivered by the backend through Firebase Cloud Messaging: the app registers its device token with the installation heartbeat, and every notification the server raises (class changes, invoices, reports, ticket replies, homework) is also pushed. It only sends once the academy enables the Firebase (fcm) integration in Settings → Integrations. Test on a physical device, and enable the iOS push capability/APNs key in Firebase before shipping to iOS.
 
 ## Notifications
 
-Class reminders are scheduled locally from the signed-in family's two-week schedule and open the corresponding class when tapped. The current backend does not expose a device-token registration API, so remote server push requires a separate backend delivery implementation.
+Class reminders are scheduled locally from the signed-in family's two-week schedule and open the corresponding class when tapped. Server push is described above; local reminders keep working when the app is offline or push is not configured.
 
 ## Privacy and telemetry
 

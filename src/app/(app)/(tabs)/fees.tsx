@@ -30,9 +30,9 @@ function payInvoice(id: string) {
   router.push({ pathname: "/pay/[id]", params: { id } });
 }
 
-/** Receipts and the full billing history still live on the web portal, opened in-app already signed in. */
+/** Receipts and billing history, shown natively inside the app. */
 function openBilling() {
-  router.push({ pathname: "/portal", params: { path: "/parent/billing", title: "Billing" } });
+  router.push("/billing");
 }
 
 export default function Fees() {
@@ -101,7 +101,7 @@ export default function Fees() {
         <Feather name="shield" size={13} color={colors.muted} />
         <Text style={[type.caption, { color: colors.muted }]}>Payments are processed on your academy&apos;s secure gateway.</Text>
       </View>
-      <Button label="Receipts & billing history" icon="external-link" variant="secondary" size="sm" onPress={openBilling} />
+      <Button label="Receipts & billing history" icon="chevron-right" variant="secondary" size="sm" onPress={openBilling} />
     </Screen>
   );
 }

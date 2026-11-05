@@ -34,6 +34,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
   {
     title: "Family",
     items: [
+      { label: "Class schedule preferences", detail: "Change your child's preferred days and times", icon: "clock", tone: "info", href: "/schedule-preference" as Href, feature: "enrollment" },
       { label: "Add a child / enrollment", detail: "Enrol a brother or sister, or share class preferences", icon: "user-plus", tone: "brand", href: "/enrollment" as Href, feature: "enrollment" },
     ],
   },

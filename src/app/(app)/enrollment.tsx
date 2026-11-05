@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { errorMessage } from "@/api/client";
 import { getCourseOptions, getMyAccount, submitEnrollment } from "@/api/parent";
-import { KeyboardSafe } from "@/components/keyboard";
+import { KeyboardSafe, KeyboardSpacer, scrollFocusedInputIntoView } from "@/components/keyboard";
 import { CheckRow, DateField, Field, Pills, SelectField, Stepper, TextField } from "@/components/form";
 import { Button, Card, IconTile } from "@/components/ui";
 import {
@@ -349,6 +349,8 @@ export default function Enrollment() {
         )}
 
         {submit.isError && <Text style={[type.label, { color: colors.danger }]} accessibilityRole="alert">{errorMessage(submit.error, "Could not submit the form. Please try again.")}</Text>}
+        {/* Android no longer resizes the window for the keyboard, so reserve its height and lift the focused field. */}
+        <KeyboardSpacer onOpen={() => scrollFocusedInputIntoView(scroller)} />
       </ScrollView>
 
       <View style={[styles.bar, { paddingBottom: insets.bottom + space.md, backgroundColor: colors.card, borderTopColor: colors.border }]}>
