@@ -25,6 +25,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
     title: "Learning",
     items: [
       { label: "Homework & tests", detail: "Hand in work and see results", icon: "edit-3", tone: "brand", href: "/homework" as Href },
+      { label: "Certificates", detail: "Course completion certificates", icon: "award", tone: "success", href: "/certificates" as Href },
       { label: "Stars & badges", detail: "Rewards your child has earned in class", icon: "award", tone: "warning", href: "/rewards" as Href, feature: "classes" },
       { label: "Progress reports", detail: "Monthly notes from teachers", icon: "file-text", tone: "brand", href: "/reports" as Href, feature: "reports" },
       { label: "Learning resources", detail: "Worksheets and reading books", icon: "book-open", tone: "info", href: "/resources" as Href, feature: "resources" },
