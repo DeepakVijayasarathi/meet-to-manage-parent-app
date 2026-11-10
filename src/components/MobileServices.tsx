@@ -9,6 +9,7 @@ import { AppState, Platform, Pressable, StyleSheet, Text, View } from "react-nat
 
 import { getSchedule } from "@/api/parent";
 import { Button, Logo } from "@/components/ui";
+import { verifiedJustNow } from "@/lib/biometricLogin";
 import { BIOMETRIC_LOCK_KEY, CLASS_REMINDERS_KEY, readFlag, subscribeFlag } from "@/lib/preferences";
 import { routeForTarget } from "@/lib/notificationRoutes";
 import { reportAppHeartbeat } from "@/lib/appMonitoring";
@@ -59,7 +60,7 @@ export function BiometricGate() {
   useEffect(() => {
     readFlag(BIOMETRIC_LOCK_KEY).then(async (isEnabled) => {
       enabled.current = isEnabled;
-      if (isEnabled && await LocalAuthentication.hasHardwareAsync() && await LocalAuthentication.isEnrolledAsync()) {
+      if (isEnabled && !verifiedJustNow() && await LocalAuthentication.hasHardwareAsync() && await LocalAuthentication.isEnrolledAsync()) {
         setLocked(true);
         await unlock();
       }

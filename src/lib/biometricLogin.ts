@@ -18,8 +18,14 @@ export async function biometricsAvailable(): Promise<boolean> {
   return supported() && await LocalAuthentication.hasHardwareAsync() && await LocalAuthentication.isEnrolledAsync();
 }
 
+// When the fingerprint was last confirmed this run. The app lock skips its own prompt right after a fingerprint
+// sign-in, so a family is asked once, not once on the sign-in screen and again on the dashboard.
+let lastVerifiedAt = 0;
+export const verifiedJustNow = () => Date.now() - lastVerifiedAt < 60_000;
+
 export async function authenticate(promptMessage: string): Promise<boolean> {
   const result = await LocalAuthentication.authenticateAsync({ promptMessage, cancelLabel: "Use PIN instead" });
+  if (result.success) lastVerifiedAt = Date.now();
   return result.success;
 }
 

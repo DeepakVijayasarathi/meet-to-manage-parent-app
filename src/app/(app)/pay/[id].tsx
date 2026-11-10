@@ -48,7 +48,7 @@ export default function PayInvoice() {
 
   const invoices = useQuery({ queryKey: ["invoices", session.token], queryFn: () => getInvoices(session.token) });
   const terms = useQuery({ queryKey: ["terms", session.token], queryFn: () => getTermsStatus(session.token), staleTime: 0 });
-  const methods = useQuery({ queryKey: ["payment-methods", session.token], queryFn: () => getPaymentMethods(session.token) });
+  const methods = useQuery({ queryKey: ["payment-methods", session.token], queryFn: () => getPaymentMethods(session.token), staleTime: 0 });
   const invoice = invoices.data?.find((i) => i.id === id);
   // Defaults to the academy's first enabled method until the family picks another.
   const method = pickedMethod || methods.data?.[0]?.key || "";

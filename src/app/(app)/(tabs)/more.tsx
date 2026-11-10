@@ -1,4 +1,3 @@
-import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, type Href } from "expo-router";
 import { Fragment, useEffect, useState } from "react";
@@ -8,6 +7,7 @@ import { errorMessage } from "@/api/client";
 import { login } from "@/api/parent";
 import { Button, Card, Divider, ListRow, Logo, Screen, type IconName, type Tone } from "@/components/ui";
 import { disableBiometricLogin, enableBiometricLogin, readBiometricCredentials, readIdentifier } from "@/lib/biometricLogin";
+import { installedVersionLabel } from "@/lib/installedVersion";
 import { initials } from "@/lib/format";
 import { canUseBiometrics, confirmBiometric, disableClassReminders, enableClassReminders } from "@/components/MobileServices";
 import { BIOMETRIC_LOCK_KEY, CLASS_REMINDERS_KEY, readFlag, writeFlag } from "@/lib/preferences";
@@ -53,7 +53,7 @@ export default function More() {
   const session = useRequiredSession();
   const { signOut } = useSession();
   const { config } = useAppConfig();
-  const version = Constants.expoConfig?.version ?? "1.0.0";
+  const version = installedVersionLabel();
   const [biometricLock, setBiometricLock] = useState(false);
   const [classReminders, setClassReminders] = useState(false);
   const [settingBusy, setSettingBusy] = useState(false);

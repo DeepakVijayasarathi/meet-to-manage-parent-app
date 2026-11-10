@@ -5,9 +5,10 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { errorMessage } from "@/api/client";
+import { ApiError, errorMessage } from "@/api/client";
 import { getHomework, submitHomework } from "@/api/parent";
 import { Badge, Button, Card, EmptyState, ErrorCard, Screen, Skeleton } from "@/components/ui";
+import { openApiFile } from "@/lib/files";
 import { formatDate } from "@/lib/format";
 import { captureError } from "@/lib/telemetry";
 import { fonts, radius, space, type, useColors } from "@/lib/theme";
@@ -35,6 +36,20 @@ export default function HomeworkDetail() {
       router.back();
     },
   });
+
+  const [opening, setOpening] = useState<"worksheet" | "submission" | null>(null);
+  /** Downloads the file and opens it in the phone's viewer, staying inside the app. */
+  const open = async (which: "worksheet" | "submission", path: string, fileName: string) => {
+    setOpening(which);
+    try {
+      await openApiFile(session.token, path, fileName);
+    } catch (error) {
+      if (!(error instanceof ApiError)) captureError(error, "homework_open_file");
+      Alert.alert("Couldn't open the file", errorMessage(error));
+    } finally {
+      setOpening(null);
+    }
+  };
 
   const pick = async (source: "camera" | "library") => {
     try {
@@ -87,7 +102,8 @@ export default function HomeworkDetail() {
             icon="file-text"
             variant="secondary"
             style={{ marginTop: space.md }}
-            onPress={() => router.push({ pathname: "/portal", params: { path: "/parent/homework", title: "Homework" } })}
+            loading={opening === "worksheet"}
+            onPress={() => void open("worksheet", `/api/assignments/mine/${item.submissionId}/attachment`, item.attachmentFileName ?? "worksheet")}
           />
         )}
       </Card>
@@ -131,7 +147,10 @@ export default function HomeworkDetail() {
               <Button label="Choose photo" icon="image" variant="secondary" size="sm" style={{ flex: 1 }} onPress={() => void pick("library")} />
             </View>
           )}
-          {item.submissionFileName && !photo && <Text style={[type.caption, { color: colors.muted }]}>Already attached: {item.submissionFileName}</Text>}
+          {item.submissionFileName && !photo && (
+            <Button label={`View attached: ${item.submissionFileName}`} icon="paperclip" variant="ghost" size="sm" loading={opening === "submission"}
+              onPress={() => void open("submission", `/api/assignments/mine/${item.submissionId}/file`, item.submissionFileName ?? "submission")} />
+          )}
           {submit.isError && <Text style={[type.label, { color: colors.danger }]}>{errorMessage(submit.error)}</Text>}
           <Button
             label={item.status === "Submitted" ? "Update" : "Hand in"}
