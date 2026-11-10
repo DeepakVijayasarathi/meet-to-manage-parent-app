@@ -8,14 +8,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { getSchedule } from "@/api/parent";
-import { Button, Logo } from "@/components/ui";
+import { FingerprintFront } from "@/components/FingerprintFront";
 import { verifiedJustNow } from "@/lib/biometricLogin";
 import { BIOMETRIC_LOCK_KEY, CLASS_REMINDERS_KEY, readFlag, subscribeFlag } from "@/lib/preferences";
 import { routeForTarget } from "@/lib/notificationRoutes";
 import { reportAppHeartbeat } from "@/lib/appMonitoring";
 import { classTitle, reminderPlan } from "@/lib/schedule";
 import { captureError, track } from "@/lib/telemetry";
-import { fonts, space, useColors } from "@/lib/theme";
+import { fonts, space } from "@/lib/theme";
 import { useRequiredSession, useSession } from "@/state/session";
 import { useAppConfig } from "@/state/appConfig";
 
@@ -45,9 +45,9 @@ export function ConfigSyncBanner() {
 }
 
 export function BiometricGate() {
-  const colors = useColors();
   const { signOut } = useSession();
-  const [locked, setLocked] = useState(false);
+  // Covered from the very first frame, so the dashboard is never visible (or prompting) before the check finishes.
+  const [locked, setLocked] = useState(true);
   const [checking, setChecking] = useState(true);
   const enabled = useRef(false);
   const backgroundedAt = useRef<number | null>(null);
@@ -63,7 +63,7 @@ export function BiometricGate() {
       if (isEnabled && !verifiedJustNow() && await LocalAuthentication.hasHardwareAsync() && await LocalAuthentication.isEnrolledAsync()) {
         setLocked(true);
         await unlock();
-      }
+      } else setLocked(false);
     }).catch((error) => captureError(error, "biometric_gate")).finally(() => setChecking(false));
     return subscribeFlag(BIOMETRIC_LOCK_KEY, (isEnabled) => { enabled.current = isEnabled; });
   }, [unlock]);
@@ -86,14 +86,11 @@ export function BiometricGate() {
     return () => subscription.remove();
   }, [unlock]);
 
-  if (checking || !locked) return null;
+  if (!locked) return null;
+  // The same front screen as sign-in: logo, fingerprint button, PIN link. Just the logo while still checking.
   return (
-    <View style={[styles.lock, { backgroundColor: colors.background }]} accessibilityViewIsModal>
-      <Logo size={72} />
-      <Text style={[styles.lockTitle, { color: colors.text }]}>App locked</Text>
-      <Text style={[styles.lockBody, { color: colors.muted }]}>Use your fingerprint or face to continue.</Text>
-      <Button label="Unlock" icon="unlock" onPress={() => void unlock()} />
-      <Pressable onPress={() => signOut()} accessibilityRole="button"><Text style={[styles.signOut, { color: colors.danger }]}>Sign out instead</Text></Pressable>
+    <View style={styles.lock} accessibilityViewIsModal>
+      {checking ? <FingerprintFront /> : <FingerprintFront onFingerprint={() => void unlock()} onPin={() => signOut()} />}
     </View>
   );
 }
@@ -218,7 +215,7 @@ const styles = StyleSheet.create({
   configWarningText: { flex: 1, color: "#78350F", fontFamily: fonts.medium, fontSize: 12 },
   configRetry: { minHeight: 32, justifyContent: "center", paddingHorizontal: space.sm },
   configRetryText: { color: "#92400E", fontFamily: fonts.bold, fontSize: 12 },
-  lock: { position: "absolute", inset: 0, zIndex: 300, elevation: 300, alignItems: "center", justifyContent: "center", gap: space.lg, padding: space.xxl },
+  lock: { position: "absolute", inset: 0, zIndex: 300, elevation: 300 },
   lockTitle: { fontFamily: fonts.bold, fontSize: 24 },
   lockBody: { fontFamily: fonts.regular, fontSize: 15, textAlign: "center" },
   signOut: { fontFamily: fonts.semibold, fontSize: 14, padding: space.md },

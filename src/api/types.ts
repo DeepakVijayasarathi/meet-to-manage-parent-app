@@ -336,7 +336,8 @@ export interface ApiAppConfig {
   minimumVersion?: string | null;
   forceUpgrade?: boolean;
   quickActions?: string | null;
-  features?: { classes: boolean; fees: boolean; updates: boolean; reports: boolean; resources: boolean; recordings: boolean; enrollment: boolean; support: boolean; feedback: boolean; mito: boolean };
+  features?: { classes: boolean; fees: boolean; updates: boolean; reports: boolean; resources: boolean; recordings: boolean; enrollment: boolean; support: boolean; feedback: boolean; mito: boolean;
+    homework?: boolean; certificates?: boolean; rewards?: boolean; schedulePreferences?: boolean; webPortal?: boolean };
   mito?: { chatEnabled: boolean; quizEnabled: boolean; voiceEnabled: boolean; doubtModeEnabled: boolean; planModeEnabled: boolean; reviewModeEnabled: boolean; displayName: string; welcomeMessage: string | null };
   /** First-launch tour set by the administrator; empty fields fall back to the app's own wording. */
   welcome?: { enabled: boolean; title: string | null; subtitle: string | null; features: string | null };

@@ -35,20 +35,20 @@ export default function AppLayout() {
       </Stack.Protected>
       <Stack.Protected guard={enabled("classes")}>
         <Stack.Screen name="class/[id]" options={{ title: "Class" }} />
-        <Stack.Screen name="rewards" options={{ title: "Stars & badges" }} />
         <Stack.Screen name="live/[id]" options={{ headerShown: false, presentation: "fullScreenModal" }} />
       </Stack.Protected>
-      <Stack.Protected guard={enabled("enrollment")}>
-        <Stack.Screen name="enrollment" options={{ title: "Enrollment" }} />
-        <Stack.Screen name="schedule-preference" options={{ title: "Class schedule" }} />
-      </Stack.Protected>
-      <Stack.Screen name="portal" options={{ title: "Meet to Manage" }} />
+      <Stack.Protected guard={enabled("classes") && enabled("rewards")}><Stack.Screen name="rewards" options={{ title: "Stars & badges" }} /></Stack.Protected>
+      <Stack.Protected guard={enabled("enrollment")}><Stack.Screen name="enrollment" options={{ title: "Enrollment" }} /></Stack.Protected>
+      <Stack.Protected guard={enabled("enrollment") && enabled("schedulePreferences")}><Stack.Screen name="schedule-preference" options={{ title: "Class schedule" }} /></Stack.Protected>
+      <Stack.Protected guard={enabled("webPortal")}><Stack.Screen name="portal" options={{ title: "Meet to Manage" }} /></Stack.Protected>
       <Stack.Screen name="pay/[id]" options={{ title: "Pay fees" }} />
       <Stack.Screen name="billing" options={{ title: "Receipts & billing" }} />
       <Stack.Protected guard={enabled("feedback")}><Stack.Screen name="feedback" options={{ title: "Share feedback", presentation: "modal" }} /></Stack.Protected>
-      <Stack.Screen name="homework/index" options={{ title: "Homework & Tests" }} />
-      <Stack.Screen name="homework/[id]" options={{ title: "Homework" }} />
-      <Stack.Screen name="certificates/index" options={{ title: "Certificates" }} />
+      <Stack.Protected guard={enabled("homework")}>
+        <Stack.Screen name="homework/index" options={{ title: "Homework & Tests" }} />
+        <Stack.Screen name="homework/[id]" options={{ title: "Homework" }} />
+      </Stack.Protected>
+      <Stack.Protected guard={enabled("certificates")}><Stack.Screen name="certificates/index" options={{ title: "Certificates" }} /></Stack.Protected>
       <Stack.Protected guard={enabled("reports")}>
         <Stack.Screen name="reports/index" options={{ title: "Progress reports" }} />
         <Stack.Screen name="reports/[id]" options={{ title: "Report" }} />

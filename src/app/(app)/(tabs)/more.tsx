@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Alert, Modal, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import { errorMessage } from "@/api/client";
+import type { ApiAppConfig } from "@/api/types";
 import { login } from "@/api/parent";
 import { Button, Card, Divider, ListRow, Logo, Screen, type IconName, type Tone } from "@/components/ui";
 import { disableBiometricLogin, enableBiometricLogin, readBiometricCredentials, readIdentifier } from "@/lib/biometricLogin";
@@ -17,16 +18,16 @@ import { useRequiredSession, useSession } from "@/state/session";
 import { useAppConfig } from "@/state/appConfig";
 
 /** `href` is a native screen; `portal` a web-portal page opened in-app, already signed in. */
-type Feature = "classes" | "reports" | "resources" | "recordings" | "enrollment" | "support";
-type Item = { label: string; detail: string; icon: IconName; tone: Tone; href?: Href; portal?: string; feature?: Feature };
+type Feature = keyof NonNullable<ApiAppConfig["features"]>;
+type Item = { label: string; detail: string; icon: IconName; tone: Tone; href?: Href; portal?: string; feature?: Feature | Feature[] };
 
 const GROUPS: { title: string; items: Item[] }[] = [
   {
     title: "Learning",
     items: [
-      { label: "Homework & tests", detail: "Hand in work and see results", icon: "edit-3", tone: "brand", href: "/homework" as Href },
-      { label: "Certificates", detail: "Course completion certificates", icon: "award", tone: "success", href: "/certificates" as Href },
-      { label: "Stars & badges", detail: "Rewards your child has earned in class", icon: "award", tone: "warning", href: "/rewards" as Href, feature: "classes" },
+      { label: "Homework & tests", detail: "Hand in work and see results", icon: "edit-3", tone: "brand", href: "/homework" as Href, feature: "homework" },
+      { label: "Certificates", detail: "Course completion certificates", icon: "award", tone: "success", href: "/certificates" as Href, feature: "certificates" },
+      { label: "Stars & badges", detail: "Rewards your child has earned in class", icon: "award", tone: "warning", href: "/rewards" as Href, feature: ["classes", "rewards"] },
       { label: "Progress reports", detail: "Monthly notes from teachers", icon: "file-text", tone: "brand", href: "/reports" as Href, feature: "reports" },
       { label: "Learning resources", detail: "Worksheets and reading books", icon: "book-open", tone: "info", href: "/resources" as Href, feature: "resources" },
       { label: "Class recordings", detail: "Watch past classes again", icon: "play-circle", tone: "success", href: "/recordings" as Href, feature: "recordings" },
@@ -35,7 +36,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
   {
     title: "Family",
     items: [
-      { label: "Class schedule preferences", detail: "Change your child's preferred days and times", icon: "clock", tone: "info", href: "/schedule-preference" as Href, feature: "enrollment" },
+      { label: "Class schedule preferences", detail: "Change your child's preferred days and times", icon: "clock", tone: "info", href: "/schedule-preference" as Href, feature: ["enrollment", "schedulePreferences"] },
       { label: "Add a child / enrollment", detail: "Enrol a brother or sister, or share class preferences", icon: "user-plus", tone: "brand", href: "/enrollment" as Href, feature: "enrollment" },
     ],
   },
@@ -43,7 +44,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
     title: "Support",
     items: [
       { label: "Help & support", detail: "Raise a request, chat with the team", icon: "life-buoy", tone: "warning", href: "/support" as Href, feature: "support" },
-      { label: "Open web portal", detail: "Everything from the website, already signed in", icon: "globe", tone: "neutral", portal: "/parent" },
+      { label: "Open web portal", detail: "Everything from the website, already signed in", icon: "globe", tone: "neutral", portal: "/parent", feature: "webPortal" },
     ],
   },
 ];
@@ -172,7 +173,7 @@ export default function More() {
         </View>
       </Card>
 
-      {GROUPS.map((group) => ({ ...group, items: group.items.filter(item => !item.feature || config?.features?.[item.feature] !== false) })).filter(group => group.items.length > 0).map((group) => (
+      {GROUPS.map((group) => ({ ...group, items: group.items.filter(item => [item.feature ?? []].flat().every(f => config?.features?.[f] !== false)) })).filter(group => group.items.length > 0).map((group) => (
         <View key={group.title} style={{ gap: space.sm }}>
           <Text style={[type.overline, { color: colors.muted, paddingHorizontal: 2 }]}>{group.title}</Text>
           <Card padded={false}>
