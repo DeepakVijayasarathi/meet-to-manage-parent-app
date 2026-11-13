@@ -49,3 +49,6 @@ GoogleService-Info.plist
 # local Android build output and signing details
 /builds
 keystore.properties
+
+# Local expo export / smoothness-check bundles (generated)
+.expo-smoothness-*/
