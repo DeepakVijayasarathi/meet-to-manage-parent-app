@@ -9,7 +9,7 @@ import { AppState, Platform, Pressable, StyleSheet, Text, View } from "react-nat
 
 import { getSchedule } from "@/api/parent";
 import { FingerprintFront } from "@/components/FingerprintFront";
-import { verifiedJustNow } from "@/lib/biometricLogin";
+import { preferPinSignIn, verifiedJustNow } from "@/lib/biometricLogin";
 import { BIOMETRIC_LOCK_KEY, CLASS_REMINDERS_KEY, readFlag, subscribeFlag } from "@/lib/preferences";
 import { routeForTarget } from "@/lib/notificationRoutes";
 import { reportAppHeartbeat } from "@/lib/appMonitoring";
@@ -90,7 +90,7 @@ export function BiometricGate() {
   // The same front screen as sign-in: logo, fingerprint button, PIN link. Just the logo while still checking.
   return (
     <View style={styles.lock} accessibilityViewIsModal>
-      {checking ? <FingerprintFront /> : <FingerprintFront onFingerprint={() => void unlock()} onPin={() => signOut()} />}
+      {checking ? <FingerprintFront /> : <FingerprintFront onFingerprint={() => void unlock()} onPin={() => { preferPinSignIn(); signOut(); }} />}
     </View>
   );
 }

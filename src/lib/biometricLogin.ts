@@ -22,12 +22,20 @@ export async function biometricsAvailable(): Promise<boolean> {
 // sign-in, so a family is asked once, not once on the sign-in screen and again on the dashboard.
 let lastVerifiedAt = 0;
 export const verifiedJustNow = () => Date.now() - lastVerifiedAt < 60_000;
+/** A successful PIN sign-in is already proof of identity, so the app lock must not ask for the fingerprint right after it. */
+export const markVerified = () => { lastVerifiedAt = Date.now(); };
 
 export async function authenticate(promptMessage: string): Promise<boolean> {
   const result = await LocalAuthentication.authenticateAsync({ promptMessage, cancelLabel: "Use PIN instead" });
   if (result.success) lastVerifiedAt = Date.now();
   return result.success;
 }
+
+// Set when the family taps "Sign in with PIN" on the lock screen, so the sign-in screen they land on after
+// signing out opens the PIN form instead of prompting for the fingerprint again.
+let pinPreferred = false;
+export const preferPinSignIn = () => { pinPreferred = true; };
+export const takePinPreference = () => { const value = pinPreferred; pinPreferred = false; return value; };
 
 /** The email / mobile last used to sign in, so the PIN alone is enough to turn fingerprint sign-in on later. */
 export const rememberIdentifier = (identifier: string) => supported() ? writeItem(IDENTIFIER_KEY, identifier.trim()) : Promise.resolve();

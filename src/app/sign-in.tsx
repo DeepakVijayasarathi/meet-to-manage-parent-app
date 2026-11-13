@@ -10,7 +10,7 @@ import { ApiError, errorMessage } from "@/api/client";
 import { FingerprintFront } from "@/components/FingerprintFront";
 import { KeyboardSafe, KeyboardSpacer } from "@/components/keyboard";
 import { Button } from "@/components/ui";
-import { authenticate, biometricLoginReady, clearBiometricCredentials, offerBiometricLogin, readBiometricCredentials, rememberIdentifier } from "@/lib/biometricLogin";
+import { authenticate, biometricLoginReady, clearBiometricCredentials, markVerified, offerBiometricLogin, readBiometricCredentials, rememberIdentifier, takePinPreference } from "@/lib/biometricLogin";
 import { brand, elevation, fonts, layout, radius, space, type, useColors } from "@/lib/theme";
 import { useSession } from "@/state/session";
 
@@ -40,6 +40,7 @@ export default function SignIn() {
     clearNotice();
     try {
       await signIn(identifier, pin);
+      markVerified();
       await rememberIdentifier(identifier);
       await offerBiometricLogin(identifier, pin);
       router.replace("/");
@@ -57,7 +58,7 @@ export default function SignIn() {
     if (busy) return;
     const saved = await readBiometricCredentials();
     if (!saved) { setFingerprint(false); return; }
-    if (!(await authenticate("Sign in to Meet to Manage"))) return;
+    if (!(await authenticate("Sign in to Meet to Manage"))) { setUsePin(true); return; } // "Use PIN instead" opens the PIN form
     setBusy(true);
     setError(null);
     clearNotice();
@@ -78,9 +79,11 @@ export default function SignIn() {
 
   // Offer the fingerprint straight away when it is turned on, so a returning family needn't type anything.
   useEffect(() => {
+    const wantsPin = takePinPreference();
     void biometricLoginReady().then((ready) => {
       setFingerprint(ready);
-      if (ready) void fingerprintSignIn();
+      if (ready && wantsPin) setUsePin(true); // they chose "Sign in with PIN": show the form, no fingerprint prompt
+      else if (ready) void fingerprintSignIn();
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
