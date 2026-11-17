@@ -15,6 +15,27 @@ export function roomUrl(join: Pick<ApiJitsiJoin, "domain" | "room" | "token">, d
   const config: Record<string, unknown> = {
     "config.prejoinConfig.enabled": false,
     "config.disableDeepLinking": true,
+    // Same media tuning as the web classroom (JitsiLive): a phone on mobile data is the weakest link,
+    // and with Jitsi's defaults it stalls instead of just looking softer.
+    // Always relay through the JVB: peer-to-peer has no TURN fallback, the classic cause of "I can see
+    // their tile but hear and see nothing".
+    "config.p2p.enabled": false,
+    // Capture a modest camera size (360p ideal, 480p ceiling) instead of the 720p+ default, which
+    // needs ~2.5 Mbps upstream; simulcast still steps down from there when the link gets worse.
+    "config.constraints.video.height.ideal": 360,
+    "config.constraints.video.height.max": 480,
+    "config.constraints.video.height.min": 180,
+    // Consistent voice level and echo/noise cleanup on every phone, instead of each device's own default.
+    "config.constraints.audio.autoGainControl": true,
+    "config.constraints.audio.echoCancellation": true,
+    "config.constraints.audio.noiseSuppression": true,
+    // Audio that survives a bad link: RED sends each frame twice so a lost packet isn't a dropout, DTX
+    // stops sending during silence, and a 32 kbps cap leaves room for the rest of a weak connection.
+    "config.audioQuality.stereo": false,
+    "config.audioQuality.opusMaxAverageBitrate": 32000,
+    "config.audioQuality.enableOpusDtx": true,
+    "config.audioQuality.enableOpusRed": true,
+    "config.doNotStoreRoom": true,
     "config.startWithAudioMuted": !!opts.audioMuted,
     "config.startWithVideoMuted": !!opts.videoMuted,
     "config.toolbarButtons": ["microphone", "camera", "tileview", "hangup"],
