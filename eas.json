@@ -27,7 +27,11 @@
       },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://api.meettomanage.cloud"
-      }
+      },
+      "ios": {
+        "simulator": false
+      },
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
@@ -36,7 +40,11 @@
       },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://api.meettomanage.cloud"
-      }
+      },
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "channel": "production"
     },
     "apk": {
       "extends": "production",
@@ -48,6 +56,14 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascAppId": "REPLACE_WITH_APP_STORE_CONNECT_APP_ID"
+      }
+    }
   }
 }

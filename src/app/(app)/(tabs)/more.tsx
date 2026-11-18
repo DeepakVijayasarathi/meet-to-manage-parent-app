@@ -5,7 +5,7 @@ import { Alert, Modal, Pressable, StyleSheet, Switch, Text, TextInput, View } fr
 
 import { errorMessage } from "@/api/client";
 import type { ApiAppConfig } from "@/api/types";
-import { login } from "@/api/parent";
+import { deleteAccount, login } from "@/api/parent";
 import { Button, Card, Divider, ListRow, Logo, Screen, type IconName, type Tone } from "@/components/ui";
 import { disableBiometricLogin, enableBiometricLogin, readBiometricCredentials, readIdentifier } from "@/lib/biometricLogin";
 import { installedVersionLabel } from "@/lib/installedVersion";
@@ -62,6 +62,11 @@ export default function More() {
   const [pinPrompt, setPinPrompt] = useState<{ identifier: string } | null>(null);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
+  // Account deletion: a second PIN prompt, opened only after an explicit warning.
+  const [deletePrompt, setDeletePrompt] = useState(false);
+  const [deletePin, setDeletePin] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     void Promise.all([readFlag(BIOMETRIC_LOCK_KEY), readFlag(CLASS_REMINDERS_KEY)]).then(([bio, reminders]) => {
@@ -83,6 +88,28 @@ export default function More() {
       { text: "Sign out", style: "destructive", onPress: () => signOut() },
     ],
   );
+
+  const confirmDeleteAccount = () => Alert.alert(
+    "Delete your account?",
+    "This permanently deletes your account, your children's profiles, enrolments, invoices, recordings access and messages. This cannot be undone. Any unpaid fees remain between you and your academy.",
+    [
+      { text: "Cancel", style: "cancel" },
+      { text: "Continue", style: "destructive", onPress: () => { setDeletePin(""); setDeleteError(null); setDeletePrompt(true); } },
+    ],
+  );
+
+  const runDeleteAccount = async () => {
+    if (!/^\d{4}$/.test(deletePin) || deleting) return;
+    setDeleting(true); setDeleteError(null);
+    try {
+      await deleteAccount(session.token, deletePin);
+      try { await disableBiometricLogin(); } catch { /* nothing stored is fine */ }
+      track("account_deleted", {});
+      setDeletePrompt(false);
+      signOut("Your account has been deleted.");
+    } catch (err) { setDeleteError(errorMessage(err, "We couldn't delete your account. Please check your PIN and try again.")); }
+    finally { setDeleting(false); }
+  };
 
   const toggleBiometric = async (enabled: boolean) => {
     if (settingBusy) return;
@@ -163,6 +190,25 @@ export default function More() {
           </View>
         </View>
       </Modal>
+      <Modal visible={deletePrompt} transparent animationType="fade" onRequestClose={() => { if (!deleting) setDeletePrompt(false); }}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[type.heading, { color: colors.danger }]}>Confirm account deletion</Text>
+            <Text style={[type.body, { color: colors.muted }]}>Enter your 4-digit PIN to permanently delete your account and your children's data.</Text>
+            <TextInput
+              style={[styles.pinInput, { color: colors.text, backgroundColor: colors.mutedBg }]}
+              value={deletePin} onChangeText={(v) => setDeletePin(v.replace(/\D/g, "").slice(0, 4))}
+              secureTextEntry keyboardType="number-pad" maxLength={4} autoFocus placeholder="PIN" placeholderTextColor={colors.muted}
+              accessibilityLabel="PIN" onSubmitEditing={() => void runDeleteAccount()}
+            />
+            {deleteError && <Text style={[type.caption, { color: colors.danger }]}>{deleteError}</Text>}
+            <Button label="Delete my account" icon="trash-2" onPress={() => void runDeleteAccount()} disabled={!/^\d{4}$/.test(deletePin)} loading={deleting} />
+            <Pressable onPress={() => setDeletePrompt(false)} disabled={deleting} accessibilityRole="button" style={{ alignItems: "center", padding: space.sm }}>
+              <Text style={[type.body, { color: colors.muted }]}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       <Card style={styles.profile}>
         <LinearGradient colors={[colors.primary, colors.accent]} style={styles.avatar}>
           <Text style={styles.avatarText}>{initials(session.userName)}</Text>
@@ -212,6 +258,8 @@ export default function More() {
 
       <Card padded={false}>
         <ListRow icon="log-out" tone="danger" title="Sign out" onPress={confirmSignOut} chevron={false} />
+        <Divider />
+        <ListRow icon="trash-2" tone="danger" title="Delete account" subtitle="Permanently remove your account and your children's data" onPress={confirmDeleteAccount} chevron={false} />
       </Card>
 
       <View style={styles.footer}>

@@ -11,6 +11,15 @@ export function login(identifier: string, pin: string): Promise<LoginResponse> {
   });
 }
 
+/** Permanently deletes the signed-in parent's account and their children's data. The PIN proves it is them. */
+export function deleteAccount(token: string, currentPin: string): Promise<void> {
+  return apiFetch<void>("/api/auth/me/delete-account", {
+    token,
+    method: "POST",
+    body: JSON.stringify({ currentPin }),
+  });
+}
+
 export function getChildren(token: string): Promise<ApiParentChild[]> {
   return apiFetch<ApiParentChild[]>("/api/parent-portal/children", { token });
 }
